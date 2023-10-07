@@ -661,7 +661,7 @@ export const addEnvironment = (name, collectionUid) => (dispatch, getState) => {
     }
 
     ipcRenderer
-      .invoke('renderer:create-environment', collection.pathname, name)
+      .invoke('renderer:create-environment', collection, name)
       .then(
         dispatch(
           updateLastAction({
@@ -692,7 +692,7 @@ export const copyEnvironment = (name, baseEnvUid, collectionUid) => (dispatch, g
     }
 
     ipcRenderer
-      .invoke('renderer:copy-environment', collection.pathname, name, baseEnv.variables)
+      .invoke('renderer:copy-environment', collection, name, baseEnv.variables)
       .then(
         dispatch(
           updateLastAction({
@@ -728,7 +728,7 @@ export const renameEnvironment = (newName, environmentUid, collectionUid) => (di
 
     environmentSchema
       .validate(environment)
-      .then(() => ipcRenderer.invoke('renderer:rename-environment', collection.pathname, oldName, newName))
+      .then(() => ipcRenderer.invoke('renderer:rename-environment', collection, oldName, newName))
       .then(resolve)
       .catch(reject);
   });
@@ -749,10 +749,7 @@ export const deleteEnvironment = (environmentUid, collectionUid) => (dispatch, g
       return reject(new Error('Environment not found'));
     }
 
-    ipcRenderer
-      .invoke('renderer:delete-environment', collection.pathname, environment.name)
-      .then(resolve)
-      .catch(reject);
+    ipcRenderer.invoke('renderer:delete-environment', collection, environment.name).then(resolve).catch(reject);
   });
 };
 
@@ -774,7 +771,7 @@ export const saveEnvironment = (variables, environmentUid, collectionUid) => (di
 
     environmentSchema
       .validate(environment)
-      .then(() => ipcRenderer.invoke('renderer:save-environment', collection.pathname, environment))
+      .then(() => ipcRenderer.invoke('renderer:save-environment', collection, environment))
       .then(resolve)
       .catch(reject);
   });

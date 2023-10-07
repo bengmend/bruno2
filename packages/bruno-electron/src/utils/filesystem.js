@@ -65,8 +65,13 @@ const hasJsonExtension = (filename) => {
   return ['json'].some((ext) => filename.toLowerCase().endsWith(`.${ext}`));
 };
 
+/**
+ * @param {string} filename
+ * @returns {boolean}
+ */
 const hasBruExtension = (filename) => {
   if (!filename || typeof filename !== 'string') return false;
+
   return ['bru'].some((ext) => filename.toLowerCase().endsWith(`.${ext}`));
 };
 
