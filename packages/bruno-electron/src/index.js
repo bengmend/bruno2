@@ -8,6 +8,7 @@ const menuTemplate = require('./app/menu-template');
 const LastOpenedCollections = require('./store/last-opened-collections');
 const registerNetworkIpc = require('./ipc/network');
 const registerCollectionsIpc = require('./ipc/collection');
+const registerUpdaterIpc = require('./ipc/updater');
 const Watcher = require('./app/watcher');
 const { loadWindowState, saveWindowState } = require('./utils/window');
 
@@ -71,7 +72,10 @@ app.on('ready', async () => {
     require('electron').shell.openExternal(url);
   });
 
+  mainWindow.webContents.openDevTools();
+
   // register all ipc handlers
+  registerUpdaterIpc(mainWindow);
   registerNetworkIpc(mainWindow, watcher, lastOpenedCollections);
   registerCollectionsIpc(mainWindow, watcher, lastOpenedCollections);
 });
