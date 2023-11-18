@@ -1,21 +1,19 @@
-import TitleBar from './TitleBar';
+import Actions from 'components/Actions';
+import GitHubButton from 'react-github-btn';
 import Collections from './Collections';
 import StyledWrapper from './StyledWrapper';
-import GitHubButton from 'react-github-btn';
-import Preferences from 'components/Preferences';
+import TitleBar from './TitleBar';
 
-import { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { IconSettings } from '@tabler/icons';
-import { updateLeftSidebarWidth, updateIsDragging, showPreferences } from 'providers/ReduxStore/slices/app';
+import { updateIsDragging, updateLeftSidebarWidth } from 'providers/ReduxStore/slices/app';
 import { useTheme } from 'providers/Theme';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 const MIN_LEFT_SIDEBAR_WIDTH = 222;
 const MAX_LEFT_SIDEBAR_WIDTH = 600;
 
 const Sidebar = () => {
   const leftSidebarWidth = useSelector((state) => state.app.leftSidebarWidth);
-  const preferencesOpen = useSelector((state) => state.app.showPreferences);
 
   const [asideWidth, setAsideWidth] = useState(leftSidebarWidth);
 
@@ -78,24 +76,15 @@ const Sidebar = () => {
     <StyledWrapper className="flex relative h-screen">
       <aside>
         <div className="flex flex-row h-screen w-full">
-          {preferencesOpen && <Preferences onClose={() => dispatch(showPreferences(false))} />}
-
           <div className="flex flex-col w-full" style={{ width: asideWidth }}>
-            <div className="flex flex-col flex-grow">
+            <div className="flex flex-col flex-grow overflow-hidden">
               <TitleBar />
+              <Actions />
               <Collections />
             </div>
 
-            <div className="footer flex px-1 py-2 absolute bottom-0 left-0 right-0 items-center cursor-pointer select-none">
-              <div className="flex items-center ml-1 text-xs ">
-                <IconSettings
-                  size={18}
-                  strokeWidth={1.5}
-                  className="mr-2  hover:text-gray-700"
-                  onClick={() => dispatch(showPreferences(true))}
-                />
-              </div>
-              <div className="pl-1" style={{ position: 'relative', top: '3px' }}>
+            <div className="footer flex px-1 py-2 items-center cursor-pointer select-none">
+              <div className="pl-1" style={{ position: 'relative' }}>
                 <GitHubButton
                   href="https://github.com/usebruno/bruno"
                   data-color-scheme={storedTheme}
