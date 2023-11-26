@@ -2,7 +2,7 @@ const ohm = require('ohm-js');
 const _ = require('lodash');
 
 const grammar = ohm.grammar(`Bru {
-  BruEnvFile = (vars | secretvars)*
+  BruEnvFile = (vars | secretvars | color)*
 
   nl = "\\r"? "\\n"
   st = " " | "\\t"
@@ -27,6 +27,7 @@ const grammar = ohm.grammar(`Bru {
 
   secretvars = "vars:secret" array
   vars = "vars" dictionary
+  color = "color:" any*
 }`);
 
 const mapPairListToKeyValPairs = (pairList = []) => {
@@ -84,7 +85,8 @@ const sem = grammar.createSemantics().addAttribute('ast', {
   BruEnvFile(tags) {
     if (!tags || !tags.ast || !tags.ast.length) {
       return {
-        variables: []
+        variables: [],
+        color: '#B80000'
       };
     }
 
@@ -150,6 +152,11 @@ const sem = grammar.createSemantics().addAttribute('ast', {
     });
     return {
       variables: vars
+    };
+  },
+  color: (_1, anystring) => {
+    return {
+      color: anystring.sourceString.trim()
     };
   }
 });

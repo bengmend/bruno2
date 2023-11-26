@@ -113,7 +113,7 @@ export const collectionsSlice = createSlice({
       }
     },
     saveEnvironment: (state, action) => {
-      const { variables, environmentUid, collectionUid } = action.payload;
+      const { variables, color, environmentUid, collectionUid } = action.payload;
       const collection = findCollectionByUid(state.collections, collectionUid);
 
       if (collection) {
@@ -121,6 +121,7 @@ export const collectionsSlice = createSlice({
 
         if (environment) {
           environment.variables = variables;
+          environment.color = color;
         }
       }
     },

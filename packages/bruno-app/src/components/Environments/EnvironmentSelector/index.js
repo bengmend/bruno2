@@ -9,16 +9,27 @@ import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import StyledWrapper from './StyledWrapper';
 
-const EnvironmentSelector = ({ collection }) => {
+const EnvironmentSelector = (props) => {
   const dispatch = useDispatch();
   const dropdownTippyRef = useRef();
   const [openSettingsModal, setOpenSettingsModal] = useState(false);
-  const { environments, activeEnvironmentUid } = collection;
-  const activeEnvironment = activeEnvironmentUid ? find(environments, (e) => e.uid === activeEnvironmentUid) : null;
+  const { activeEnvironmentUid } = props.collection;
+  const [collection, setCollection] = useState(props.collection);
+  const setEnvironments = (environments) => {
+    setCollection({ ...collection, environments: environments });
+  };
+
+  const activeEnvironment = activeEnvironmentUid
+    ? find(collection.environments, (e) => e.uid === activeEnvironmentUid)
+    : null;
 
   const Icon = forwardRef((props, ref) => {
     return (
-      <div ref={ref} className="current-enviroment flex items-center justify-center pl-3 pr-2 py-1 select-none">
+      <div
+        ref={ref}
+        style={{ background: activeEnvironment?.color }}
+        className="current-environment flex items-center justify-center pl-3 pr-2 py-1 select-none"
+      >
         {activeEnvironment ? activeEnvironment.name : 'No Environment'}
         <IconCaretDown className="caret" size={14} strokeWidth={2} />
       </div>
@@ -53,8 +64,8 @@ const EnvironmentSelector = ({ collection }) => {
     <StyledWrapper>
       <div className="flex items-center cursor-pointer environment-selector">
         <Dropdown onCreate={onDropdownCreate} icon={<Icon />} placement="bottom-end">
-          {environments && environments.length
-            ? environments.map((e) => (
+          {collection.environments?.length
+            ? collection.environments.map((e) => (
                 <div
                   className="dropdown-item"
                   key={e.uid}
@@ -63,7 +74,8 @@ const EnvironmentSelector = ({ collection }) => {
                     dropdownTippyRef.current.hide();
                   }}
                 >
-                  <IconDatabase size={18} strokeWidth={1.5} /> <span className="ml-2 break-all">{e.name}</span>
+                  <IconDatabase color={e.color} size={18} strokeWidth={1.5} />
+                  <span className="ml-2 break-all">{e.name}</span>
                 </div>
               ))
             : null}
@@ -85,7 +97,13 @@ const EnvironmentSelector = ({ collection }) => {
           </div>
         </Dropdown>
       </div>
-      {openSettingsModal && <EnvironmentSettings collection={collection} onClose={handleModalClose} />}
+      {openSettingsModal && (
+        <EnvironmentSettings
+          collection={collection}
+          setEnvironments={setEnvironments}
+          onClose={handleModalClose}
+        />
+      )}
     </StyledWrapper>
   );
 };

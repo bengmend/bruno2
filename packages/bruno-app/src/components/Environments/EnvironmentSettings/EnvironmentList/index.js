@@ -8,15 +8,22 @@ import ImportEnvironment from '../ImportEnvironment';
 import ManageSecrets from '../ManageSecrets';
 import StyledWrapper from './StyledWrapper';
 
-const EnvironmentList = ({ collection }) => {
-  const { environments } = collection;
+const EnvironmentList = ({ collection, setEnvironments }) => {
   const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openImportModal, setOpenImportModal] = useState(false);
   const [openManageSecretsModal, setOpenManageSecretsModal] = useState(false);
 
-  const envUids = environments ? environments.map((env) => env.uid) : [];
+  const envUids = collection?.environments?.map((env) => env.uid) ?? [];
   const prevEnvUids = usePrevious(envUids);
+
+  const onColorChange = (environment, color) => {
+    const updatedEnvironments = collection.environments.map((e) =>
+      e.uid === environment.uid ? { ...e, color: color } : e
+    );
+    setSelectedEnvironment({ ...selectedEnvironment, color: color });
+    setEnvironments(updatedEnvironments);
+  };
 
   useEffect(() => {
     if (selectedEnvironment) {
@@ -27,24 +34,24 @@ const EnvironmentList = ({ collection }) => {
     if (environment) {
       setSelectedEnvironment(environment);
     } else {
-      setSelectedEnvironment(environments && environments.length ? environments[0] : null);
+      setSelectedEnvironment(collection?.environments?.length ? collection.environments[0] : null);
     }
-  }, [collection, environments, selectedEnvironment]);
+  }, [collection, selectedEnvironment]);
 
   useEffect(() => {
     // check env add
-    if (prevEnvUids && prevEnvUids.length && envUids.length > prevEnvUids.length) {
-      const newEnv = environments.find((env) => !prevEnvUids.includes(env.uid));
+    if (prevEnvUids?.length && envUids.length > prevEnvUids.length) {
+      const newEnv = collection.environments.find((env) => !prevEnvUids.includes(env.uid));
       if (newEnv) {
         setSelectedEnvironment(newEnv);
       }
     }
 
     // check env delete
-    if (prevEnvUids && prevEnvUids.length && envUids.length < prevEnvUids.length) {
-      setSelectedEnvironment(environments && environments.length ? environments[0] : null);
+    if (prevEnvUids?.length && envUids.length < prevEnvUids.length) {
+      setSelectedEnvironment(collection.environments?.length ? collection.environments[0] : null);
     }
-  }, [envUids, environments, prevEnvUids]);
+  }, [envUids, collection, prevEnvUids]);
 
   if (!selectedEnvironment) {
     return null;
@@ -58,17 +65,15 @@ const EnvironmentList = ({ collection }) => {
       <div className="flex">
         <div>
           <div className="environments-sidebar flex flex-col">
-            {environments &&
-              environments.length &&
-              environments.map((env) => (
-                <div
-                  key={env.uid}
-                  className={selectedEnvironment.uid === env.uid ? 'environment-item active' : 'environment-item'}
-                  onClick={() => setSelectedEnvironment(env)}
-                >
-                  <span className="break-all">{env.name}</span>
-                </div>
-              ))}
+            {collection?.environments?.map((env) => (
+              <div
+                key={env.uid}
+                className={selectedEnvironment.uid === env.uid ? 'environment-item active' : 'environment-item'}
+                onClick={() => setSelectedEnvironment(env)}
+              >
+                <span className="break-all">{env.name}</span>
+              </div>
+            ))}
             <div className="btn-create-environment" onClick={() => setOpenCreateModal(true)}>
               + <span>Create</span>
             </div>
@@ -85,7 +90,11 @@ const EnvironmentList = ({ collection }) => {
             </div>
           </div>
         </div>
-        <EnvironmentDetails environment={selectedEnvironment} collection={collection} />
+        <EnvironmentDetails
+          environment={selectedEnvironment}
+          onColorChange={(color) => onColorChange(selectedEnvironment, color)}
+          collection={collection}
+        />
       </div>
     </StyledWrapper>
   );

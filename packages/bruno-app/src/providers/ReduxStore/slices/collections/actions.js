@@ -858,6 +858,29 @@ export const saveEnvironment = (variables, environmentUid, collectionUid) => (di
   });
 };
 
+export const saveEnvironmentColor = (color, environmentUid, collectionUid) => (dispatch, getState) => {
+  return new Promise((resolve, reject) => {
+    const state = getState();
+    const collection = findCollectionByUid(state.collections.collections, collectionUid);
+    if (!collection) {
+      return reject(new Error('Collection not found'));
+    }
+
+    const collectionCopy = cloneDeep(collection);
+    const environment = findEnvironmentInCollection(collectionCopy, environmentUid);
+    if (!environment) {
+      return reject(new Error('Environment not found'));
+    }
+
+    const updatedEnvironment = { ...environment, color: color };
+    environmentSchema
+      .validate(updatedEnvironment)
+      .then(() => ipcRenderer.invoke('renderer:save-environment', collection.pathname, updatedEnvironment))
+      .then(resolve)
+      .catch(reject);
+  });
+};
+
 export const selectEnvironment = (environmentUid, collectionUid) => (dispatch, getState) => {
   return new Promise((resolve, reject) => {
     const state = getState();
