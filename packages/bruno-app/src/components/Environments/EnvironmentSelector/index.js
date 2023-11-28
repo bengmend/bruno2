@@ -25,11 +25,7 @@ const EnvironmentSelector = (props) => {
 
   const Icon = forwardRef((props, ref) => {
     return (
-      <div
-        ref={ref}
-        style={{ background: activeEnvironment?.color }}
-        className="current-environment flex items-center justify-center pl-3 pr-2 py-1 select-none"
-      >
+      <div ref={ref} className="current-environment flex items-center justify-center pl-3 pr-2 py-1 select-none">
         {activeEnvironment ? activeEnvironment.name : 'No Environment'}
         <IconCaretDown className="caret" size={14} strokeWidth={2} />
       </div>
@@ -61,7 +57,7 @@ const EnvironmentSelector = (props) => {
   };
 
   return (
-    <StyledWrapper>
+    <StyledWrapper color={activeEnvironment?.color}>
       <div className="flex items-center cursor-pointer environment-selector">
         <Dropdown onCreate={onDropdownCreate} icon={<Icon />} placement="bottom-end">
           {collection.environments?.length
