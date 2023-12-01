@@ -2,7 +2,7 @@ import React from 'react';
 import get from 'lodash/get';
 import { useFormik } from 'formik';
 import { useSelector, useDispatch } from 'react-redux';
-import { savePreferences } from 'providers/ReduxStore/slices/app';
+import { savePreferences } from '@providers/ReduxStore/slices/app';
 import StyledWrapper from './StyledWrapper';
 import * as Yup from 'yup';
 import toast from 'react-hot-toast';
