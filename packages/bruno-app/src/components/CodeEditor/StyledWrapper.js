@@ -8,6 +8,10 @@ const StyledWrapper = styled.div`
     line-break: anywhere;
   }
 
+  .CodeMirror * {
+    font-size: ${(props) => (props.size ? props.size + 'px' : '12px')};
+  }
+
   .CodeMirror-overlayscroll-horizontal div,
   .CodeMirror-overlayscroll-vertical div {
     background: #d2d7db;

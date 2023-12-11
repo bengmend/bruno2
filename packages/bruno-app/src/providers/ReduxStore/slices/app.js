@@ -14,7 +14,8 @@ const initialState = {
       timeout: 0
     },
     font: {
-      codeFont: 'default'
+      codeFont: 'default',
+      sizeFont: 12
     }
   },
   cookies: []
