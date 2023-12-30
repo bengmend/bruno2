@@ -109,6 +109,7 @@ const createResponseParser = (response = {}) => {
   res.statusText = response.statusText;
   res.headers = response.headers;
   res.body = response.data;
+  res.responseTime = response.responseTime;
 
   res.getStatus = () => {
     return response ? response.status : null;

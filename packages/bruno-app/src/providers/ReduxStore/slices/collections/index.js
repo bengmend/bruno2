@@ -1,4 +1,3 @@
-import path from 'path';
 import { uuid } from 'utils/common';
 import find from 'lodash/find';
 import map from 'lodash/map';
@@ -25,9 +24,7 @@ import {
   areItemsTheSameExceptSeqUpdate
 } from 'utils/collections';
 import { parseQueryParams, stringifyQueryParams } from 'utils/url';
-import { getSubdirectoriesFromRoot, getDirectoryName } from 'utils/common/platform';
-
-const PATH_SEPARATOR = path.sep;
+import { getSubdirectoriesFromRoot, getDirectoryName, PATH_SEPARATOR } from 'utils/common/platform';
 
 const initialState = {
   collections: [],
@@ -220,6 +217,19 @@ export const collectionsSlice = createSlice({
 
             if (variable) {
               variable.value = value;
+            } else {
+              // __name__ is a private variable used to store the name of the environment
+              // this is not a user defined variable and hence should not be updated
+              if (key !== '__name__') {
+                activeEnvironment.variables.push({
+                  name: key,
+                  value,
+                  secret: false,
+                  enabled: true,
+                  type: 'text',
+                  uid: uuid()
+                });
+              }
             }
           });
         }
@@ -256,6 +266,16 @@ export const collectionsSlice = createSlice({
           item.requestState = 'received';
           item.response = action.payload.response;
           item.cancelTokenUid = null;
+        }
+      }
+    },
+    responseCleared: (state, action) => {
+      const collection = findCollectionByUid(state.collections, action.payload.collectionUid);
+
+      if (collection) {
+        const item = findItemInCollection(collection, action.payload.itemUid);
+        if (item) {
+          item.response = null;
         }
       }
     },
@@ -390,6 +410,10 @@ export const collectionsSlice = createSlice({
             case 'basic':
               item.draft.request.auth.mode = 'basic';
               item.draft.request.auth.basic = action.payload.content;
+              break;
+            case 'digest':
+              item.draft.request.auth.mode = 'digest';
+              item.draft.request.auth.digest = action.payload.content;
               break;
           }
         }
@@ -971,13 +995,15 @@ export const collectionsSlice = createSlice({
         switch (action.payload.mode) {
           case 'awsv4':
             set(collection, 'root.request.auth.awsv4', action.payload.content);
-            console.log('set auth awsv4', action.payload.content);
             break;
           case 'bearer':
             set(collection, 'root.request.auth.bearer', action.payload.content);
             break;
           case 'basic':
             set(collection, 'root.request.auth.basic', action.payload.content);
+            break;
+          case 'digest':
+            set(collection, 'root.request.auth.digest', action.payload.content);
             break;
         }
       }
@@ -996,12 +1022,18 @@ export const collectionsSlice = createSlice({
         set(collection, 'root.request.script.res', action.payload.script);
       }
     },
-
     updateCollectionTests: (state, action) => {
       const collection = findCollectionByUid(state.collections, action.payload.collectionUid);
 
       if (collection) {
         set(collection, 'root.request.tests', action.payload.tests);
+      }
+    },
+    updateCollectionDocs: (state, action) => {
+      const collection = findCollectionByUid(state.collections, action.payload.collectionUid);
+
+      if (collection) {
+        set(collection, 'root.docs', action.payload.docs);
       }
     },
     addCollectionHeader: (state, action) => {
@@ -1051,7 +1083,6 @@ export const collectionsSlice = createSlice({
         if (collection) {
           collection.root = file.data;
         }
-        console.log('collectionAddFileEvent', file);
         return;
       }
 
@@ -1203,6 +1234,7 @@ export const collectionsSlice = createSlice({
           existingEnv.variables = environment.variables;
         } else {
           collection.environments.push(environment);
+          collection.environments.sort((a, b) => a.name.localeCompare(b.name));
 
           const lastAction = collection.lastAction;
           if (lastAction && lastAction.type === 'ADD_ENVIRONMENT') {
@@ -1375,6 +1407,7 @@ export const {
   processEnvUpdateEvent,
   requestCancelled,
   responseReceived,
+  responseCleared,
   saveRequest,
   deleteRequestDraft,
   newEphemeralHttpRequest,
@@ -1417,6 +1450,7 @@ export const {
   updateCollectionRequestScript,
   updateCollectionResponseScript,
   updateCollectionTests,
+  updateCollectionDocs,
   collectionAddFileEvent,
   collectionAddDirectoryEvent,
   collectionChangeFileEvent,

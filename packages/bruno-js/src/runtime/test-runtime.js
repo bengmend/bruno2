@@ -27,6 +27,7 @@ const nanoid = require('nanoid');
 const axios = require('axios');
 const fetch = require('node-fetch');
 const CryptoJS = require('crypto-js');
+const NodeVault = require('node-vault');
 
 class TestRuntime {
   constructor() {}
@@ -47,6 +48,11 @@ class TestRuntime {
     const res = createResponseParser(response);
     const allowScriptFilesystemAccess = get(scriptingConfig, 'filesystemAccess.allow', false);
     const moduleWhitelist = get(scriptingConfig, 'moduleWhitelist', []);
+    const additionalContextRoots = get(scriptingConfig, 'additionalContextRoots', []);
+    const additionalContextRootsAbsolute = lodash
+      .chain(additionalContextRoots)
+      .map((acr) => (acr.startsWith('/') ? acr : path.join(collectionPath, acr)))
+      .value();
 
     const whitelistedModules = {};
 
@@ -100,7 +106,7 @@ class TestRuntime {
       require: {
         context: 'sandbox',
         external: true,
-        root: [collectionPath],
+        root: [collectionPath, ...additionalContextRootsAbsolute],
         mock: {
           // node libs
           path,
@@ -124,7 +130,8 @@ class TestRuntime {
           'node-fetch': fetch,
           'crypto-js': CryptoJS,
           ...whitelistedModules,
-          fs: allowScriptFilesystemAccess ? fs : undefined
+          fs: allowScriptFilesystemAccess ? fs : undefined,
+          'node-vault': NodeVault
         }
       }
     });

@@ -1,11 +1,23 @@
 import { createSlice } from '@reduxjs/toolkit';
+import toast from 'react-hot-toast';
 
 const initialState = {
   isDragging: false,
   idbConnectionReady: false,
   leftSidebarWidth: 222,
   screenWidth: 500,
-  showHomePage: false
+  showHomePage: false,
+  showPreferences: false,
+  preferences: {
+    request: {
+      sslVerification: true,
+      timeout: 0
+    },
+    font: {
+      codeFont: 'default'
+    }
+  },
+  cookies: []
 };
 
 export const appSlice = createSlice({
@@ -29,6 +41,15 @@ export const appSlice = createSlice({
     },
     hideHomePage: (state) => {
       state.showHomePage = false;
+    },
+    showPreferences: (state, action) => {
+      state.showPreferences = action.payload;
+    },
+    updatePreferences: (state, action) => {
+      state.preferences = action.payload;
+    },
+    updateCookies: (state, action) => {
+      state.cookies = action.payload;
     }
   }
 });
@@ -39,7 +60,35 @@ export const {
   updateLeftSidebarWidth,
   updateIsDragging,
   showHomePage,
-  hideHomePage
+  hideHomePage,
+  showPreferences,
+  updatePreferences,
+  updateCookies
 } = appSlice.actions;
+
+export const savePreferences = (preferences) => (dispatch, getState) => {
+  return new Promise((resolve, reject) => {
+    const { ipcRenderer } = window;
+
+    ipcRenderer
+      .invoke('renderer:save-preferences', preferences)
+      .then(() => toast.success('Preferences saved successfully'))
+      .then(() => dispatch(updatePreferences(preferences)))
+      .then(resolve)
+      .catch((err) => {
+        toast.error('An error occurred while saving preferences');
+        console.error(err);
+        reject(err);
+      });
+  });
+};
+
+export const deleteCookiesForDomain = (domain) => (dispatch, getState) => {
+  return new Promise((resolve, reject) => {
+    const { ipcRenderer } = window;
+
+    ipcRenderer.invoke('renderer:delete-cookies-for-domain', domain).then(resolve).catch(reject);
+  });
+};
 
 export default appSlice.reducer;
