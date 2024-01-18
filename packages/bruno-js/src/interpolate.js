@@ -27,6 +27,55 @@ const interpolateEnvVars = (str, processEnvVars) => {
     }
   });
 };
+const interpolateString = (str, { envVariables, collectionVariables, processEnvVars }) => {
+  if (!str || !str.length || typeof str !== 'string') {
+    return str;
+  }
+
+  processEnvVars = processEnvVars || {};
+  collectionVariables = collectionVariables || {};
+
+  // we clone envVariables because we don't want to modify the original object
+  envVariables = envVariables ? cloneDeep(envVariables) : {};
+
+  // envVariables can, in turn, have values as {{process.env.VAR_NAME}}
+  // Therefore, we need to interpolate envVariables first with processEnvVars
+  forOwn(envVariables, (value, key) => {
+    envVariables[key] = interpolateEnvVars(value, processEnvVars);
+  });
+
+  const template = Handlebars.compile(str, { noEscape: true });
+
+  // collectionVariables take precedence over envVariables
+  const combinedVars = {
+    ...envVariables,
+    ...collectionVariables,
+    process: {
+      env: {
+        ...processEnvVars
+      }
+    }
+  };
+
+  return template(combinedVars);
+};
+const interpolateUrl = ({ url, envVars, collectionVariables, processEnvVars }) => {
+  if (!url || !url.length || typeof url !== 'string') {
+    return;
+  }
+
+  const template = Handlebars.compile(url, { noEscape: true });
+
+  return template({
+    ...envVars,
+    ...collectionVariables,
+    process: {
+      env: {
+        ...processEnvVars
+      }
+    }
+  });
+};
 
 const interpolateVars = (request, envVars = {}, collectionVariables = {}, processEnvVars = {}) => {
   // we clone envVars because we don't want to modify the original object
@@ -43,9 +92,7 @@ const interpolateVars = (request, envVars = {}, collectionVariables = {}, proces
       return str;
     }
 
-    // Handlebars doesn't allow dots as identifiers, so we need to use literal segments
-    const strLiteralSegment = str.replace('{{', '{{[').replace('}}', ']}}');
-    const template = Handlebars.compile(strLiteralSegment, { noEscape: true });
+    const template = Handlebars.compile(str, { noEscape: true });
 
     // collectionVariables take precedence over envVars
     const combinedVars = {
@@ -123,23 +170,11 @@ const interpolateVars = (request, envVars = {}, collectionVariables = {}, proces
     delete request.auth;
   }
 
-  // interpolate vars for aws sigv4 auth
-  if (request.awsv4config) {
-    request.awsv4config.accessKeyId = interpolate(request.awsv4config.accessKeyId) || '';
-    request.awsv4config.secretAccessKey = interpolate(request.awsv4config.secretAccessKey) || '';
-    request.awsv4config.sessionToken = interpolate(request.awsv4config.sessionToken) || '';
-    request.awsv4config.service = interpolate(request.awsv4config.service) || '';
-    request.awsv4config.region = interpolate(request.awsv4config.region) || '';
-    request.awsv4config.profileName = interpolate(request.awsv4config.profileName) || '';
-  }
-
-  // interpolate vars for digest auth
-  if (request.digestConfig) {
-    request.digestConfig.username = interpolate(request.digestConfig.username) || '';
-    request.digestConfig.password = interpolate(request.digestConfig.password) || '';
-  }
-
   return request;
 };
 
-module.exports = interpolateVars;
+module.exports = {
+  interpolateVars,
+  interpolateString,
+  interpolateUrl
+};
