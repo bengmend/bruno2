@@ -3,7 +3,6 @@ import classnames from 'classnames';
 import { uuid } from 'utils/common';
 import filter from 'lodash/filter';
 import { useDrop } from 'react-dnd';
-import { IconChevronRight, IconDots } from '@tabler/icons';
 import Dropdown from 'components/Dropdown';
 import { collectionClicked } from 'providers/ReduxStore/slices/collections';
 import { moveItemToRootOfCollection } from 'providers/ReduxStore/slices/collections/actions';
@@ -15,12 +14,24 @@ import CollectionItem from './CollectionItem';
 import RemoveCollection from './RemoveCollection';
 import ExportCollection from './ExportCollection';
 import { doesCollectionHaveItemsMatchingSearchText } from 'utils/collections/search';
-import { isItemAFolder, isItemARequest, transformCollectionToSaveToExportAsFile } from 'utils/collections';
-import exportCollection from 'utils/collections/export';
+import { isItemAFolder, isItemARequest } from 'utils/collections';
 
 import RenameCollection from './RenameCollection';
 import StyledWrapper from './StyledWrapper';
 import CloneCollection from './CloneCollection/index';
+import { DropdownItem } from 'components/Dropdown/DropdownItem/dropdown_item';
+import {
+  BadgePlus,
+  ChevronRight,
+  CopyPlus,
+  FilePenLine,
+  FileUp,
+  FolderPlus,
+  MoreHorizontal,
+  Rocket,
+  Settings,
+  Trash2
+} from 'lucide-react';
 
 const Collection = ({ collection, searchText }) => {
   const [showNewFolderModal, setShowNewFolderModal] = useState(false);
@@ -36,8 +47,8 @@ const Collection = ({ collection, searchText }) => {
   const onMenuDropdownCreate = (ref) => (menuDropdownTippyRef.current = ref);
   const MenuIcon = forwardRef((props, ref) => {
     return (
-      <div ref={ref} className="pr-2">
-        <IconDots size={22} />
+      <div ref={ref} className="group pr-2">
+        <MoreHorizontal size={22} className="group-hover:text-slate-950 dark:group-hover:text-white" />
       </div>
     );
   });
@@ -144,89 +155,87 @@ const Collection = ({ collection, searchText }) => {
           onClick={handleClick}
           onContextMenu={handleRightClick}
         >
-          <IconChevronRight
-            size={16}
-            strokeWidth={2}
-            className={iconClassName}
-            style={{ width: 16, minWidth: 16, color: 'rgb(160 160 160)' }}
-          />
+          <ChevronRight size={16} strokeWidth={2} className={iconClassName} />
           <div className="ml-1" id="sidebar-collection-name">
             {collection.name}
           </div>
         </div>
         <div className="collection-actions">
           <Dropdown onCreate={onMenuDropdownCreate} icon={<MenuIcon />} placement="bottom-start">
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                setShowNewRequestModal(true);
-              }}
-            >
-              New Request
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                setShowNewFolderModal(true);
-              }}
-            >
-              New Folder
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                setShowCloneCollectionModalOpen(true);
-              }}
-            >
-              Clone
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                handleRun();
-              }}
-            >
-              Run
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                setShowRenameCollectionModal(true);
-              }}
-            >
-              Rename
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                setShowExportCollectionModal(true);
-              }}
-            >
-              Export
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                setShowRemoveCollectionModal(true);
-              }}
-            >
-              Remove
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                viewCollectionSettings();
-              }}
-            >
-              Settings
+            <div className="flex flex-col px-1">
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  setShowNewRequestModal(true);
+                }}
+              >
+                <BadgePlus size={16} className="mr-2" />
+                New Request
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  setShowNewFolderModal(true);
+                }}
+              >
+                <FolderPlus size={16} className="mr-2" />
+                New Folder
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  handleRun();
+                }}
+              >
+                <Rocket size={16} className="mr-2" />
+                Run
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  setShowRenameCollectionModal(true);
+                }}
+              >
+                <FilePenLine size={16} className="mr-2" />
+                Rename
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  setShowCloneCollectionModalOpen(true);
+                }}
+              >
+                <CopyPlus size={16} className="mr-2" />
+                Clone
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  setShowExportCollectionModal(true);
+                }}
+              >
+                <FileUp size={16} className="mr-2" />
+                Export
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  viewCollectionSettings();
+                }}
+              >
+                <Settings size={16} className="mr-2" />
+                Settings
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  setShowRemoveCollectionModal(true);
+                }}
+                className="text-red-500 hover:!bg-red-100 dark:hover:!bg-red-400/20"
+              >
+                <Trash2 size={16} className="mr-2 !text-red-500" />
+                Remove
+              </DropdownItem>
             </div>
           </Dropdown>
         </div>

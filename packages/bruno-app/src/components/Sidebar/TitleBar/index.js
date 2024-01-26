@@ -5,12 +5,13 @@ import CreateCollection from '../CreateCollection';
 import ImportCollection from 'components/Sidebar/ImportCollection';
 import ImportCollectionLocation from 'components/Sidebar/ImportCollectionLocation';
 
-import { IconDots } from '@tabler/icons';
 import { useState, forwardRef, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { showHomePage } from 'providers/ReduxStore/slices/app';
 import { openCollection, importCollection } from 'providers/ReduxStore/slices/collections/actions';
 import StyledWrapper from './StyledWrapper';
+import { DropdownItem } from 'components/Dropdown/DropdownItem/dropdown_item';
+import { BadgePlus, Bolt, FolderSymlink, Import, MoreHorizontal } from 'lucide-react';
 
 const TitleBar = () => {
   const [importedCollection, setImportedCollection] = useState(null);
@@ -37,9 +38,9 @@ const TitleBar = () => {
   const onMenuDropdownCreate = (ref) => (menuDropdownTippyRef.current = ref);
   const MenuIcon = forwardRef((props, ref) => {
     return (
-      <div ref={ref} className="dropdown-icon cursor-pointer">
-        <IconDots size={22} />
-      </div>
+      <button ref={ref} className="dropdown-icon cursor-pointer hover:text-slate-950 dark:hover:text-white">
+        <MoreHorizontal size={22} />
+      </button>
     );
   });
 
@@ -82,41 +83,43 @@ const TitleBar = () => {
         </div>
         <div className="collection-dropdown flex flex-grow items-center justify-end">
           <Dropdown onCreate={onMenuDropdownCreate} icon={<MenuIcon />} placement="bottom-start">
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                setCreateCollectionModalOpen(true);
-                menuDropdownTippyRef.current.hide();
-              }}
-            >
-              Create Collection
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                handleOpenCollection();
-                menuDropdownTippyRef.current.hide();
-              }}
-            >
-              Open Collection
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                setImportCollectionModalOpen(true);
-              }}
-            >
-              Import Collection
-            </div>
-            <div
-              className="dropdown-item"
-              onClick={(e) => {
-                menuDropdownTippyRef.current.hide();
-                openDevTools();
-              }}
-            >
-              Devtools
+            <div className="flex flex-col px-1">
+              <DropdownItem
+                onClick={(e) => {
+                  setCreateCollectionModalOpen(true);
+                  menuDropdownTippyRef.current.hide();
+                }}
+              >
+                <BadgePlus size={16} className="mr-2" />
+                Create Collection
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  handleOpenCollection();
+                  menuDropdownTippyRef.current.hide();
+                }}
+              >
+                <FolderSymlink size={16} className="mr-2" />
+                Open Collection
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  setImportCollectionModalOpen(true);
+                }}
+              >
+                <Import size={16} className="mr-2" />
+                Import Collection
+              </DropdownItem>
+              <DropdownItem
+                onClick={(e) => {
+                  menuDropdownTippyRef.current.hide();
+                  openDevTools();
+                }}
+              >
+                <Bolt size={16} className="mr-2" />
+                Devtools
+              </DropdownItem>
             </div>
           </Dropdown>
         </div>

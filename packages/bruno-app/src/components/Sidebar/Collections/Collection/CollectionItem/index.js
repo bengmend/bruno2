@@ -3,7 +3,6 @@ import range from 'lodash/range';
 import filter from 'lodash/filter';
 import classnames from 'classnames';
 import { useDrag, useDrop } from 'react-dnd';
-import { IconChevronRight, IconDots } from '@tabler/icons';
 import { useSelector, useDispatch } from 'react-redux';
 import { addTab, focusTab } from 'providers/ReduxStore/slices/tabs';
 import { collectionFolderClicked } from 'providers/ReduxStore/slices/collections';
@@ -25,6 +24,18 @@ import { hideHomePage } from 'providers/ReduxStore/slices/app';
 import toast from 'react-hot-toast';
 import StyledWrapper from './StyledWrapper';
 import NetworkError from 'components/ResponsePane/NetworkError/index';
+import {
+  BadgePlus,
+  ChevronRight,
+  CopyPlus,
+  FileCode2,
+  FilePenLine,
+  FolderPlus,
+  MoreHorizontal,
+  Rocket,
+  Trash2
+} from 'lucide-react';
+import { DropdownItem } from 'components/Dropdown/DropdownItem/dropdown_item';
 
 const CollectionItem = ({ item, collection, searchText }) => {
   const tabs = useSelector((state) => state.tabs.tabs);
@@ -75,8 +86,8 @@ const CollectionItem = ({ item, collection, searchText }) => {
   const dropdownTippyRef = useRef();
   const MenuIcon = forwardRef((props, ref) => {
     return (
-      <div ref={ref}>
-        <IconDots size={22} />
+      <div ref={ref} className="group">
+        <MoreHorizontal size={22} className="group-hover:text-slate-950 dark:group-hover:text-white" />
       </div>
     );
   });
@@ -248,7 +259,7 @@ const CollectionItem = ({ item, collection, searchText }) => {
           >
             <div style={{ width: 16, minWidth: 16 }}>
               {isFolder ? (
-                <IconChevronRight
+                <ChevronRight
                   size={16}
                   strokeWidth={2}
                   className={iconClassName}
@@ -266,85 +277,88 @@ const CollectionItem = ({ item, collection, searchText }) => {
           </div>
           <div className="menu-icon pr-2">
             <Dropdown onCreate={onDropdownCreate} icon={<MenuIcon />} placement="bottom-start">
-              {isFolder && (
-                <>
-                  <div
-                    className="dropdown-item"
-                    onClick={(e) => {
-                      dropdownTippyRef.current.hide();
-                      setNewRequestModalOpen(true);
-                    }}
-                  >
-                    New Request
-                  </div>
-                  <div
-                    className="dropdown-item"
-                    onClick={(e) => {
-                      dropdownTippyRef.current.hide();
-                      setNewFolderModalOpen(true);
-                    }}
-                  >
-                    New Folder
-                  </div>
-                  <div
-                    className="dropdown-item"
-                    onClick={(e) => {
-                      dropdownTippyRef.current.hide();
-                      setRunCollectionModalOpen(true);
-                    }}
-                  >
-                    Run
-                  </div>
-                </>
-              )}
-              <div
-                className="dropdown-item"
-                onClick={(e) => {
-                  dropdownTippyRef.current.hide();
-                  setRenameItemModalOpen(true);
-                }}
-              >
-                Rename
-              </div>
-              <div
-                className="dropdown-item"
-                onClick={(e) => {
-                  dropdownTippyRef.current.hide();
-                  setCloneItemModalOpen(true);
-                }}
-              >
-                Clone
-              </div>
-              {!isFolder && (
-                <div
-                  className="dropdown-item"
+              <div className="flex flex-col px-1">
+                {isFolder && (
+                  <>
+                    <DropdownItem
+                      onClick={(e) => {
+                        dropdownTippyRef.current.hide();
+                        setNewRequestModalOpen(true);
+                      }}
+                    >
+                      <BadgePlus size={16} className="mr-2" />
+                      New Request
+                    </DropdownItem>
+                    <DropdownItem
+                      onClick={(e) => {
+                        dropdownTippyRef.current.hide();
+                        setNewFolderModalOpen(true);
+                      }}
+                    >
+                      <FolderPlus size={16} className="mr-2" />
+                      New Folder
+                    </DropdownItem>
+                    <DropdownItem
+                      onClick={(e) => {
+                        dropdownTippyRef.current.hide();
+                        setRunCollectionModalOpen(true);
+                      }}
+                    >
+                      <Rocket size={16} className="mr-2" />
+                      Run
+                    </DropdownItem>
+                  </>
+                )}
+                <DropdownItem
                   onClick={(e) => {
                     dropdownTippyRef.current.hide();
-                    handleClick(null);
-                    handleRun();
+                    setRenameItemModalOpen(true);
                   }}
                 >
-                  Run
-                </div>
-              )}
-              {!isFolder && item.type === 'http-request' && (
-                <div
-                  className="dropdown-item"
+                  <FilePenLine size={16} className="mr-2" />
+                  Rename
+                </DropdownItem>
+                <DropdownItem
                   onClick={(e) => {
-                    handleGenerateCode(e);
+                    dropdownTippyRef.current.hide();
+                    setCloneItemModalOpen(true);
                   }}
                 >
-                  Generate Code
-                </div>
-              )}
-              <div
-                className="dropdown-item delete-item"
-                onClick={(e) => {
-                  dropdownTippyRef.current.hide();
-                  setDeleteItemModalOpen(true);
-                }}
-              >
-                Delete
+                  <CopyPlus size={16} className="mr-2" />
+                  Clone
+                </DropdownItem>
+                {!isFolder && (
+                  <DropdownItem
+                    onClick={(e) => {
+                      dropdownTippyRef.current.hide();
+                      handleClick(null);
+                      handleRun();
+                    }}
+                  >
+                    <Rocket size={16} className="mr-2" />
+                    Run
+                  </DropdownItem>
+                )}
+                {!isFolder && item.type === 'http-request' && (
+                  <DropdownItem
+                    onClick={(e) => {
+                      handleGenerateCode(e);
+                    }}
+                  >
+                    <FileCode2 size={16} className="mr-2" />
+                    Generate Code
+                  </DropdownItem>
+                )}
+                <DropdownItem
+                  onClick={(e) => {
+                    dropdownTippyRef.current.hide();
+                    setDeleteItemModalOpen(true);
+                  }}
+                  className="text-red-500 hover:!bg-red-100 dark:hover:!bg-red-400/20"
+                >
+                  <Trash2 size={16} className="mr-2 text-red-500" />
+                  Delete
+                </DropdownItem>
               </div>
             </Dropdown>
           </div>
