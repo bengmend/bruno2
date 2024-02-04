@@ -468,6 +468,10 @@ export const humanizeRequestBodyMode = (mode) => {
       label = 'XML';
       break;
     }
+    case 'file': {
+      label = 'FILE';
+      break;
+    }
     case 'sparql': {
       label = 'SPARQL';
       break;

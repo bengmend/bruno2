@@ -1,5 +1,8 @@
 const { get, each, filter, forOwn, extend } = require('lodash');
 const decomment = require('decomment');
+const { isFile, readFileBinary } = require('../../utils/filesystem');
+const mime = require('mime-types');
+const path = require('path');
 const FormData = require('form-data');
 
 // Authentication
@@ -128,6 +131,15 @@ const prepareRequest = (request, collectionRoot) => {
       axiosRequest.headers['content-type'] = 'text/xml';
     }
     axiosRequest.data = request.body.xml;
+  }
+
+  if (request.body.mode === 'file') {
+    const filePath = request.body.file;
+    if (!isFile(filePath)) throw new Error(`The file at [${filePath}] does not exist!`);
+    if (!contentTypeDefined) {
+      axiosRequest.headers['content-type'] = mime.contentType(path.extname(filePath)) || 'application/octet-stream';
+    }
+    axiosRequest.data = readFileBinary(filePath);
   }
 
   if (request.body.mode === 'sparql') {
