@@ -321,7 +321,6 @@ export const collectionsSlice = createSlice({
     },
     collectionClicked: (state, action) => {
       const collection = findCollectionByUid(state.collections, action.payload);
-
       if (collection) {
         collection.collapsed = !collection.collapsed;
       }
@@ -331,7 +330,6 @@ export const collectionsSlice = createSlice({
 
       if (collection) {
         const item = findItemInCollection(collection, action.payload.itemUid);
-
         if (item && item.type === 'folder') {
           item.collapsed = !item.collapsed;
         }

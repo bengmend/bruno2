@@ -105,7 +105,7 @@ const mapPairListToKeyValPairs = (pairList = [], parseEnabled = true) => {
   }
   return _.map(pairList[0], (pair) => {
     let name = _.keys(pair)[0];
-    let value = decodeURIComponent(pair[name]);
+    let value = name === 'password' ? pair[name] : decodeURIComponent(pair[name]);
 
     if (!parseEnabled) {
       return {
