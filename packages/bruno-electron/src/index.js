@@ -35,15 +35,15 @@ let watcher;
 
 // Prepare the renderer once the app is ready
 app.on('ready', async () => {
-  const { maximized, x, y, width, height } = loadWindowState();
+  const { maximized, x, y, width, height, isFullResize } = loadWindowState();
 
   mainWindow = new BrowserWindow({
     x,
     y,
     width,
     height,
-    minWidth: 1000,
-    minHeight: 640,
+    minWidth: isFullResize ? 0 : 1000,
+    minHeight: isFullResize ? 0 : 640,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: true,

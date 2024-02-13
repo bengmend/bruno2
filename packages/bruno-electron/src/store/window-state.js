@@ -4,6 +4,7 @@ const DEFAULT_WINDOW_WIDTH = 1280;
 const DEFAULT_WINDOW_HEIGHT = 768;
 
 const DEFAULT_MAXIMIZED = false;
+const DEFAULT_FULL_RESIZE = false;
 
 class WindowStateStore {
   constructor() {
@@ -34,6 +35,14 @@ class WindowStateStore {
 
   setMaximized(isMaximized) {
     this.store.set('maximized', isMaximized);
+  }
+
+  getFullResize() {
+    return this.store.get('fullResize') || DEFAULT_FULL_RESIZE;
+  }
+
+  setFullResize(isFullResize) {
+    this.store.set('fullResize', isFullResize);
   }
 }
 
