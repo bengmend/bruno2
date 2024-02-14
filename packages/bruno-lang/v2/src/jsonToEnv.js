@@ -18,7 +18,7 @@ const envToJson = (json) => {
       return `  ${prefix}${name}`;
     });
 
-  const color = _.get(json, 'color', '');
+  const color = _.get(json, 'color', undefined);
 
   let output = '';
 
@@ -41,8 +41,7 @@ ${secretVars.join(',\n')}
 ]
 `;
   }
-
-  if (color !== undefined) {
+  if (color) {
     output += `color: ${color}
 `;
   }

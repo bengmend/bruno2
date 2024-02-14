@@ -85,8 +85,7 @@ const sem = grammar.createSemantics().addAttribute('ast', {
   BruEnvFile(tags) {
     if (!tags || !tags.ast || !tags.ast.length) {
       return {
-        variables: [],
-        color: '#B80000'
+        variables: []
       };
     }
 

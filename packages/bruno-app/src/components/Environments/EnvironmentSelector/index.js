@@ -15,6 +15,7 @@ const EnvironmentSelector = (props) => {
   const [openSettingsModal, setOpenSettingsModal] = useState(false);
   const { activeEnvironmentUid } = props.collection;
   const [collection, setCollection] = useState(props.collection);
+  console.log(props.collection);
   const setEnvironments = (environments) => {
     setCollection({ ...collection, environments: environments });
   };
@@ -61,17 +62,21 @@ const EnvironmentSelector = (props) => {
       <div className="flex items-center cursor-pointer environment-selector">
         <Dropdown onCreate={onDropdownCreate} icon={<Icon />} placement="bottom-end">
           {collection.environments?.length
-            ? collection.environments.map((e) => (
+            ? collection.environments.map((environment) => (
                 <div
                   className="dropdown-item"
-                  key={e.uid}
+                  key={environment.uid}
                   onClick={() => {
-                    onSelect(e);
+                    onSelect(environment);
                     dropdownTippyRef.current.hide();
                   }}
                 >
-                  <IconDatabase color={e.color} size={18} strokeWidth={1.5} />
-                  <span className="ml-2 break-all">{e.name}</span>
+                  <IconDatabase
+                    color={environment.color == '' ? undefined : environment.color}
+                    size={18}
+                    strokeWidth={1.5}
+                  />
+                  <span className="ml-2 break-all">{environment.name}</span>
                 </div>
               ))
             : null}
@@ -94,11 +99,7 @@ const EnvironmentSelector = (props) => {
         </Dropdown>
       </div>
       {openSettingsModal && (
-        <EnvironmentSettings
-          collection={collection}
-          setEnvironments={setEnvironments}
-          onClose={handleModalClose}
-        />
+        <EnvironmentSettings collection={collection} setEnvironments={setEnvironments} onClose={handleModalClose} />
       )}
     </StyledWrapper>
   );
