@@ -65,7 +65,7 @@ const EnvironmentSelector = ({ collection }) => {
                   }}
                 >
                   <IconDatabase color={e.color == '' ? undefined : e.color} size={18} strokeWidth={1.5} />
-                  <span className="ml-2 break-all">{environment.name}</span>
+                  <span className="ml-2 break-all">{e.name}</span>
                 </div>
               ))
             : null}

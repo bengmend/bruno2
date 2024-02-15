@@ -19,6 +19,10 @@ const EnvironmentList = ({ collection }) => {
   const prevEnvUids = usePrevious(envUids);
 
   useEffect(() => {
+    if (selectedEnvironment) {
+      setSelectedEnvironment(findEnvironmentInCollection(collection, selectedEnvironment.uid));
+      return;
+    }
     const environment = findEnvironmentInCollection(collection, collection.activeEnvironmentUid);
     if (environment) {
       setSelectedEnvironment(environment);
