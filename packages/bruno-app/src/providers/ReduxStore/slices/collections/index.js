@@ -125,6 +125,17 @@ export const collectionsSlice = createSlice({
         }
       }
     },
+    saveEnvironmentColor: (state, action) => {
+      const { color, environmentUid, collectionUid } = action.payload;
+      const collection = findCollectionByUid(state.collections, collectionUid);
+      console.log('payload', action.payload);
+      if (collection) {
+        const environment = findEnvironmentInCollection(collection, environmentUid);
+        if (environment) {
+          environment.color = color;
+        }
+      }
+    },
     selectEnvironment: (state, action) => {
       const { environmentUid, collectionUid } = action.payload;
       const collection = findCollectionByUid(state.collections, collectionUid);
@@ -1388,6 +1399,7 @@ export const {
   updateSettingsSelectedTab,
   collectionUnlinkEnvFileEvent,
   saveEnvironment,
+  saveEnvironmentColor,
   selectEnvironment,
   newItem,
   deleteItem,

@@ -1,16 +1,19 @@
 import { IconCopy, IconDatabase, IconEdit, IconTrash } from '@tabler/icons';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CopyEnvironment from '../../CopyEnvironment';
 import DeleteEnvironment from '../../DeleteEnvironment';
 import RenameEnvironment from '../../RenameEnvironment';
 import EnvironmentVariables from './EnvironmentVariables';
 import EnvironmentColor from '../EnvironmentDetails/EnvironmentColor';
 
-const EnvironmentDetails = ({ environment, onColorChange, collection }) => {
+const EnvironmentDetails = ({ environment, collection }) => {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openCopyModal, setOpenCopyModal] = useState(false);
 
+  useEffect(() => {
+    console.log('EnvironmentDetails useEffect');
+  }, [environment.color]);
   return (
     <div
       className="px-6 flex-grow flex flex-col pt-6"
@@ -41,7 +44,7 @@ const EnvironmentDetails = ({ environment, onColorChange, collection }) => {
         </div>
       </div>
 
-      <EnvironmentColor onColorChange={onColorChange} environment={environment} collectionUid={collection.uid} />
+      <EnvironmentColor environment={environment} collectionUid={collection.uid} />
       <EnvironmentVariables environment={environment} collection={collection} />
     </div>
   );

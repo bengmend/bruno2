@@ -1,4 +1,4 @@
-import React, { useEffect, useState, forwardRef, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { findEnvironmentInCollection } from 'utils/collections';
 import usePrevious from 'hooks/usePrevious';
 import EnvironmentDetails from './EnvironmentDetails';
@@ -8,40 +8,37 @@ import ImportEnvironment from '../ImportEnvironment';
 import ManageSecrets from '../ManageSecrets';
 import StyledWrapper from './StyledWrapper';
 
-const EnvironmentList = ({ collection, setEnvironments }) => {
+const EnvironmentList = ({
+  collection
+  // ,setEnvironments
+}) => {
+  const { environments } = collection;
+  // This is the environment selected in the EnvironmentList
   const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openImportModal, setOpenImportModal] = useState(false);
   const [openManageSecretsModal, setOpenManageSecretsModal] = useState(false);
 
-  const envUids = collection?.environments?.map((env) => env.uid) ?? [];
+  const envUids = environments?.map((env) => env.uid) ?? [];
   const prevEnvUids = usePrevious(envUids);
 
-  const onColorChange = (environment, color) => {
-    const updatedEnvironments = collection.environments.map((e) =>
-      e.uid === environment.uid ? { ...e, color: color } : e
-    );
-    setSelectedEnvironment({ ...selectedEnvironment, color: color });
-    setEnvironments(updatedEnvironments);
-  };
-
   useEffect(() => {
-    if (selectedEnvironment) {
-      return;
-    }
+    console.log('EnvironmentList useEffect', collection);
 
     const environment = findEnvironmentInCollection(collection, collection.activeEnvironmentUid);
     if (environment) {
+      console.log('b environment', environment);
       setSelectedEnvironment(environment);
     } else {
-      setSelectedEnvironment(collection?.environments?.length ? collection.environments[0] : null);
+      console.log('c');
+      setSelectedEnvironment(environments?.length ? environments[0] : null);
     }
   }, [collection, selectedEnvironment]);
 
   useEffect(() => {
     // check env add
     if (prevEnvUids?.length && envUids.length > prevEnvUids.length) {
-      const newEnv = collection.environments.find((env) => !prevEnvUids.includes(env.uid));
+      const newEnv = environments.find((env) => !prevEnvUids.includes(env.uid));
       if (newEnv) {
         setSelectedEnvironment(newEnv);
       }
@@ -49,7 +46,7 @@ const EnvironmentList = ({ collection, setEnvironments }) => {
 
     // check env delete
     if (prevEnvUids?.length && envUids.length < prevEnvUids.length) {
-      setSelectedEnvironment(collection.environments?.length ? collection.environments[0] : null);
+      setSelectedEnvironment(environments?.length ? environments[0] : null);
     }
   }, [envUids, collection, prevEnvUids]);
 
@@ -65,7 +62,7 @@ const EnvironmentList = ({ collection, setEnvironments }) => {
       <div className="flex">
         <div>
           <div className="environments-sidebar flex flex-col">
-            {collection?.environments?.map((env) => (
+            {environments?.map((env) => (
               <div
                 key={env.uid}
                 className={selectedEnvironment.uid === env.uid ? 'environment-item active' : 'environment-item'}
@@ -90,11 +87,7 @@ const EnvironmentList = ({ collection, setEnvironments }) => {
             </div>
           </div>
         </div>
-        <EnvironmentDetails
-          environment={selectedEnvironment}
-          onColorChange={(color) => onColorChange(selectedEnvironment, color)}
-          collection={collection}
-        />
+        <EnvironmentDetails environment={selectedEnvironment} collection={collection} />
       </div>
     </StyledWrapper>
   );

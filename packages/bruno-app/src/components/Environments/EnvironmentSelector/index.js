@@ -13,16 +13,10 @@ const EnvironmentSelector = (props) => {
   const dispatch = useDispatch();
   const dropdownTippyRef = useRef();
   const [openSettingsModal, setOpenSettingsModal] = useState(false);
-  const { activeEnvironmentUid } = props.collection;
-  const [collection, setCollection] = useState(props.collection);
+  const { environments, activeEnvironmentUid } = props.collection;
   console.log(props.collection);
-  const setEnvironments = (environments) => {
-    setCollection({ ...collection, environments: environments });
-  };
 
-  const activeEnvironment = activeEnvironmentUid
-    ? find(collection.environments, (e) => e.uid === activeEnvironmentUid)
-    : null;
+  const activeEnvironment = activeEnvironmentUid ? find(environments, (e) => e.uid === activeEnvironmentUid) : null;
 
   const Icon = forwardRef((props, ref) => {
     return (
@@ -46,7 +40,7 @@ const EnvironmentSelector = (props) => {
   const onDropdownCreate = (ref) => (dropdownTippyRef.current = ref);
 
   const onSelect = (environment) => {
-    dispatch(selectEnvironment(environment ? environment.uid : null, collection.uid))
+    dispatch(selectEnvironment(environment ? environment.uid : null, props.collection.uid))
       .then(() => {
         if (environment) {
           toast.success(`Environment changed to ${environment.name}`);
@@ -61,8 +55,8 @@ const EnvironmentSelector = (props) => {
     <StyledWrapper color={activeEnvironment?.color}>
       <div className="flex items-center cursor-pointer environment-selector">
         <Dropdown onCreate={onDropdownCreate} icon={<Icon />} placement="bottom-end">
-          {collection.environments?.length
-            ? collection.environments.map((environment) => (
+          {environments?.length
+            ? environments.map((environment) => (
                 <div
                   className="dropdown-item"
                   key={environment.uid}
@@ -98,9 +92,7 @@ const EnvironmentSelector = (props) => {
           </div>
         </Dropdown>
       </div>
-      {openSettingsModal && (
-        <EnvironmentSettings collection={collection} setEnvironments={setEnvironments} onClose={handleModalClose} />
-      )}
+      {openSettingsModal && <EnvironmentSettings collection={props.collection} onClose={handleModalClose} />}
     </StyledWrapper>
   );
 };

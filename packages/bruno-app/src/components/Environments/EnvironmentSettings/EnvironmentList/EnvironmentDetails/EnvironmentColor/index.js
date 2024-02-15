@@ -1,7 +1,6 @@
 import React from 'react';
-import { useRef, useEffect } from 'react';
+import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useTheme } from 'providers/Theme';
 import { useDispatch } from 'react-redux';
 import { saveEnvironmentColor } from 'providers/ReduxStore/slices/collections/actions';
 import { useFormik } from 'formik';
@@ -9,9 +8,12 @@ import * as Yup from 'yup';
 import { CirclePicker } from 'react-color';
 import { selectEnvironment as _selectEnvironment } from 'providers/ReduxStore/slices/collections';
 
-const EnvironmentColor = ({ environment, onColorChange, collectionUid }) => {
+const EnvironmentColor = ({ environment, collectionUid }) => {
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    console.log('EnvironmentColor', environment);
+  }, [environment.color]);
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -21,6 +23,7 @@ const EnvironmentColor = ({ environment, onColorChange, collectionUid }) => {
       color: Yup.string().optional()
     }),
     onSubmit: (values) => {
+      console.log('values.color', values.color);
       if (!formik.dirty) {
         toast.error('Nothing to save');
         return;
@@ -28,7 +31,6 @@ const EnvironmentColor = ({ environment, onColorChange, collectionUid }) => {
       dispatch(saveEnvironmentColor(values.color, environment.uid, collectionUid))
         .then(() => {
           toast.success('Environment color changed successfully');
-          onColorChange(values.color);
         })
         .catch((e) => {
           console.log(e);

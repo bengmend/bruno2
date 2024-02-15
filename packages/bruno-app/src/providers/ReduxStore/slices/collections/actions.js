@@ -30,6 +30,7 @@ import {
   removeCollection as _removeCollection,
   selectEnvironment as _selectEnvironment,
   sortCollections as _sortCollections,
+  saveEnvironmentColor as _saveEnvironmentColor,
   requestCancelled,
   resetRunResults,
   responseReceived,
@@ -873,9 +874,13 @@ export const saveEnvironmentColor = (color, environmentUid, collectionUid) => (d
     }
 
     const updatedEnvironment = { ...environment, color: color };
+    console.log('updatedEnvironment', updatedEnvironment);
     environmentSchema
       .validate(updatedEnvironment)
+      // save env.bru file
       .then(() => ipcRenderer.invoke('renderer:save-environment', collection.pathname, updatedEnvironment))
+      // update store
+      .then(() => dispatch(_saveEnvironmentColor({ color, environmentUid, collectionUid })))
       .then(resolve)
       .catch(reject);
   });
