@@ -1,5 +1,5 @@
 import { IconCopy, IconDatabase, IconEdit, IconTrash } from '@tabler/icons';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import CopyEnvironment from '../../CopyEnvironment';
 import DeleteEnvironment from '../../DeleteEnvironment';
 import RenameEnvironment from '../../RenameEnvironment';
@@ -11,9 +11,6 @@ const EnvironmentDetails = ({ environment, collection }) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [openCopyModal, setOpenCopyModal] = useState(false);
 
-  useEffect(() => {
-    console.log('EnvironmentDetails useEffect');
-  }, [environment.color]);
   return (
     <div
       className="px-6 flex-grow flex flex-col pt-6"

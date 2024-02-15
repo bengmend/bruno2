@@ -11,9 +11,6 @@ import { selectEnvironment as _selectEnvironment } from 'providers/ReduxStore/sl
 const EnvironmentColor = ({ environment, collectionUid }) => {
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    console.log('EnvironmentColor', environment);
-  }, [environment.color]);
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -23,7 +20,6 @@ const EnvironmentColor = ({ environment, collectionUid }) => {
       color: Yup.string().optional()
     }),
     onSubmit: (values) => {
-      console.log('values.color', values.color);
       if (!formik.dirty) {
         toast.error('Nothing to save');
         return;

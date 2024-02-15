@@ -8,12 +8,8 @@ import ImportEnvironment from '../ImportEnvironment';
 import ManageSecrets from '../ManageSecrets';
 import StyledWrapper from './StyledWrapper';
 
-const EnvironmentList = ({
-  collection
-  // ,setEnvironments
-}) => {
+const EnvironmentList = ({ collection }) => {
   const { environments } = collection;
-  // This is the environment selected in the EnvironmentList
   const [selectedEnvironment, setSelectedEnvironment] = useState(null);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openImportModal, setOpenImportModal] = useState(false);
@@ -23,14 +19,10 @@ const EnvironmentList = ({
   const prevEnvUids = usePrevious(envUids);
 
   useEffect(() => {
-    console.log('EnvironmentList useEffect', collection);
-
     const environment = findEnvironmentInCollection(collection, collection.activeEnvironmentUid);
     if (environment) {
-      console.log('b environment', environment);
       setSelectedEnvironment(environment);
     } else {
-      console.log('c');
       setSelectedEnvironment(environments?.length ? environments[0] : null);
     }
   }, [collection, selectedEnvironment]);

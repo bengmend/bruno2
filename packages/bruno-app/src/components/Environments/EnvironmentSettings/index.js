@@ -8,7 +8,6 @@ import ImportEnvironment from './ImportEnvironment';
 const EnvironmentSettings = ({ collection, onClose }) => {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openImportModal, setOpenImportModal] = useState(false);
-  console.log('EnvironmentSettings', collection.environments);
   if (!collection.environments?.length) {
     return (
       <StyledWrapper>

@@ -9,12 +9,11 @@ import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import StyledWrapper from './StyledWrapper';
 
-const EnvironmentSelector = (props) => {
+const EnvironmentSelector = ({ collection }) => {
   const dispatch = useDispatch();
   const dropdownTippyRef = useRef();
   const [openSettingsModal, setOpenSettingsModal] = useState(false);
-  const { environments, activeEnvironmentUid } = props.collection;
-  console.log(props.collection);
+  const { environments, activeEnvironmentUid } = collection;
 
   const activeEnvironment = activeEnvironmentUid ? find(environments, (e) => e.uid === activeEnvironmentUid) : null;
 
@@ -40,7 +39,7 @@ const EnvironmentSelector = (props) => {
   const onDropdownCreate = (ref) => (dropdownTippyRef.current = ref);
 
   const onSelect = (environment) => {
-    dispatch(selectEnvironment(environment ? environment.uid : null, props.collection.uid))
+    dispatch(selectEnvironment(environment ? environment.uid : null, collection.uid))
       .then(() => {
         if (environment) {
           toast.success(`Environment changed to ${environment.name}`);
@@ -56,20 +55,16 @@ const EnvironmentSelector = (props) => {
       <div className="flex items-center cursor-pointer environment-selector">
         <Dropdown onCreate={onDropdownCreate} icon={<Icon />} placement="bottom-end">
           {environments?.length
-            ? environments.map((environment) => (
+            ? environments.map((e) => (
                 <div
                   className="dropdown-item"
-                  key={environment.uid}
+                  key={e.uid}
                   onClick={() => {
-                    onSelect(environment);
+                    onSelect(e);
                     dropdownTippyRef.current.hide();
                   }}
                 >
-                  <IconDatabase
-                    color={environment.color == '' ? undefined : environment.color}
-                    size={18}
-                    strokeWidth={1.5}
-                  />
+                  <IconDatabase color={e.color == '' ? undefined : e.color} size={18} strokeWidth={1.5} />
                   <span className="ml-2 break-all">{environment.name}</span>
                 </div>
               ))
@@ -92,7 +87,7 @@ const EnvironmentSelector = (props) => {
           </div>
         </Dropdown>
       </div>
-      {openSettingsModal && <EnvironmentSettings collection={props.collection} onClose={handleModalClose} />}
+      {openSettingsModal && <EnvironmentSettings collection={collection} onClose={handleModalClose} />}
     </StyledWrapper>
   );
 };
