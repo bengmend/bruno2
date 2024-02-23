@@ -105,6 +105,10 @@ export const getContentType = (headers) => {
   return '';
 };
 
+export const sanitizeFilename = (name) => {
+  return name.replace(/[^\w-_.]/g, '_');
+};
+
 export const startsWith = (str, search) => {
   if (!str || !str.length || typeof str !== 'string') {
     return false;

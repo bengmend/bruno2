@@ -100,7 +100,10 @@ const addEnvironmentFile = async (win, pathname, collectionUid, collectionPath) 
     let bruContent = fs.readFileSync(pathname, 'utf8');
 
     file.data = bruToEnvJson(bruContent);
-    file.data.name = basename.substring(0, basename.length - 4);
+    // Older env files do not have a meta block
+    if (!file.data.name) {
+      file.data.name = basename.substring(0, basename.length - 4);
+    }
     file.data.uid = getRequestUid(pathname);
 
     _.each(_.get(file, 'data.variables', []), (variable) => (variable.uid = uuid()));
@@ -135,7 +138,10 @@ const changeEnvironmentFile = async (win, pathname, collectionUid, collectionPat
 
     const bruContent = fs.readFileSync(pathname, 'utf8');
     file.data = bruToEnvJson(bruContent);
-    file.data.name = basename.substring(0, basename.length - 4);
+    // Older env files do not have a meta block
+    if (!file.data.name) {
+      file.data.name = basename.substring(0, basename.length - 4);
+    }
     file.data.uid = getRequestUid(pathname);
     _.each(_.get(file, 'data.variables', []), (variable) => (variable.uid = uuid()));
 

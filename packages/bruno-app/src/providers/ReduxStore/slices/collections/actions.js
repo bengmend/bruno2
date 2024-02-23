@@ -1,10 +1,8 @@
-import { collectionSchema, environmentSchema, itemSchema } from '@usebruno/schema';
 import cloneDeep from 'lodash/cloneDeep';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
 import get from 'lodash/get';
 import trim from 'lodash/trim';
-import path from 'path';
 import { insertTaskIntoQueue } from 'providers/ReduxStore/slices/app';
 import toast from 'react-hot-toast';
 import {
@@ -20,7 +18,7 @@ import {
   refreshUidsInItem,
   transformRequestToSaveToFilesystem
 } from 'utils/collections';
-import { uuid, waitForNextTick } from 'utils/common';
+import { collectionSchema, itemSchema, environmentSchema } from '@usebruno/schema';
 import { PATH_SEPARATOR, getDirectoryName } from 'utils/common/platform';
 import { cancelNetworkRequest, sendNetworkRequest } from 'utils/network';
 
@@ -39,7 +37,8 @@ import {
 import { each } from 'lodash';
 import { closeAllCollectionTabs } from 'providers/ReduxStore/slices/tabs';
 import { resolveRequestFilename } from 'utils/common/platform';
-import { parseQueryParams, splitOnFirst } from 'utils/url/index';
+import { parseQueryParams, splitOnFirst } from 'utils/url';
+import { uuid, waitForNextTick } from 'utils/common';
 
 export const renameCollection = (newName, collectionUid) => (dispatch, getState) => {
   const state = getState();
@@ -319,17 +318,9 @@ export const renameItem = (newName, itemUid, collectionUid) => (dispatch, getSta
     }
 
     const dirname = getDirectoryName(item.pathname);
-
-    let newPathname = '';
-    if (item.type === 'folder') {
-      newPathname = path.join(dirname, trim(newName));
-    } else {
-      const filename = resolveRequestFilename(newName);
-      newPathname = path.join(dirname, filename);
-    }
     const { ipcRenderer } = window;
 
-    ipcRenderer.invoke('renderer:rename-item', item.pathname, newPathname, newName).then(resolve).catch(reject);
+    ipcRenderer.invoke('renderer:rename-item', item.pathname, dirname, newName).then(resolve).catch(reject);
   });
 };
 
@@ -374,14 +365,13 @@ export const cloneItem = (newName, itemUid, collectionUid) => (dispatch, getStat
         (i) => i.type !== 'folder' && trim(i.filename) === trim(filename)
       );
       if (!reqWithSameNameExists) {
-        const fullName = `${collection.pathname}${PATH_SEPARATOR}${filename}`;
         const { ipcRenderer } = window;
         const requestItems = filter(collection.items, (i) => i.type !== 'folder');
         itemToSave.seq = requestItems ? requestItems.length + 1 : 1;
 
         itemSchema
           .validate(itemToSave)
-          .then(() => ipcRenderer.invoke('renderer:new-request', fullName, itemToSave))
+          .then(() => ipcRenderer.invoke('renderer:new-request', collection.pathname, itemToSave))
           .then(resolve)
           .catch(reject);
       } else {
@@ -393,15 +383,14 @@ export const cloneItem = (newName, itemUid, collectionUid) => (dispatch, getStat
         (i) => i.type !== 'folder' && trim(i.filename) === trim(filename)
       );
       if (!reqWithSameNameExists) {
-        const dirname = getDirectoryName(item.pathname);
-        const fullName = path.join(dirname, filename);
+        const pathname = getDirectoryName(item.pathname);
         const { ipcRenderer } = window;
         const requestItems = filter(parentItem.items, (i) => i.type !== 'folder');
         itemToSave.seq = requestItems ? requestItems.length + 1 : 1;
 
         itemSchema
           .validate(itemToSave)
-          .then(() => ipcRenderer.invoke('renderer:new-request', fullName, itemToSave))
+          .then(() => ipcRenderer.invoke('renderer:new-request', pathname, itemToSave))
           .then(resolve)
           .catch(reject);
       } else {
@@ -424,12 +413,7 @@ export const deleteItem = (itemUid, collectionUid) => (dispatch, getState) => {
     if (item) {
       const { ipcRenderer } = window;
 
-      ipcRenderer
-        .invoke('renderer:delete-item', item.pathname, item.type)
-        .then(() => {
-          resolve();
-        })
-        .catch((error) => reject(error));
+      ipcRenderer.invoke('renderer:delete-item', item.pathname, item.type).then(resolve).catch(reject);
     }
     return;
   });
@@ -612,7 +596,7 @@ export const moveItemToRootOfCollection = (collectionUid, draggedItemUid) => (di
 export const newHttpRequest = (params) => (dispatch, getState) => {
   const { requestName, requestType, requestUrl, requestMethod, collectionUid, itemUid, headers, body } = params;
 
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     const state = getState();
     const collection = findCollectionByUid(state.collections.collections, collectionUid);
     if (!collection) {
@@ -657,19 +641,21 @@ export const newHttpRequest = (params) => (dispatch, getState) => {
       item.seq = requestItems.length + 1;
 
       if (!reqWithSameNameExists) {
-        const fullName = `${collection.pathname}${PATH_SEPARATOR}${filename}`;
         const { ipcRenderer } = window;
 
-        ipcRenderer.invoke('renderer:new-request', fullName, item).then(resolve).catch(reject);
-        // task middleware will track this and open the new request in a new tab once request is created
+        const newPath = await ipcRenderer.invoke('renderer:new-request', collection.pathname, item);
+        // the useCollectionNextAction() will track this and open the new request in a new tab
+        // once the request is created
         dispatch(
           insertTaskIntoQueue({
             uid: uuid(),
             type: 'OPEN_REQUEST',
             collectionUid,
-            itemPathname: fullName
+            itemPathname: newPath
           })
         );
+
+        resolve();
       } else {
         return reject(new Error('Duplicate request names are not allowed under the same folder'));
       }
@@ -683,19 +669,22 @@ export const newHttpRequest = (params) => (dispatch, getState) => {
         const requestItems = filter(currentItem.items, (i) => i.type !== 'folder');
         item.seq = requestItems.length + 1;
         if (!reqWithSameNameExists) {
-          const fullName = `${currentItem.pathname}${PATH_SEPARATOR}${filename}`;
           const { ipcRenderer } = window;
 
-          ipcRenderer.invoke('renderer:new-request', fullName, item).then(resolve).catch(reject);
-          // task middleware will track this and open the new request in a new tab once request is created
+          const newPath = await ipcRenderer.invoke('renderer:new-request', fullName, item);
+
+          // the useCollectionNextAction() will track this and open the new request in a new tab
+          // once the request is created
           dispatch(
             insertTaskIntoQueue({
               uid: uuid(),
               type: 'OPEN_REQUEST',
               collectionUid,
-              itemPathname: fullName
+              itemPathname: newPath
             })
           );
+
+          resolve();
         } else {
           return reject(new Error('Duplicate request names are not allowed under the same folder'));
         }

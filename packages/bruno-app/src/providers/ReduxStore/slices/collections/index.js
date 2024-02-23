@@ -172,6 +172,9 @@ export const collectionsSlice = createSlice({
 
         if (item) {
           item.name = action.payload.newName;
+          if (item.type === 'folder') {
+            item.pathname = path.join(path.dirname(item.pathname), action.payload.newName);
+          }
         }
       }
     },
@@ -1221,6 +1224,7 @@ export const collectionsSlice = createSlice({
 
         if (existingEnv) {
           existingEnv.variables = environment.variables;
+          existingEnv.name = environment.name;
         } else {
           collection.environments.push(environment);
           collection.environments.sort((a, b) => a.name.localeCompare(b.name));

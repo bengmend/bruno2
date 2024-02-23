@@ -14,7 +14,7 @@ const RemoveCollection = ({ onClose, collection }) => {
         toast.success('Collection closed');
         onClose();
       })
-      .catch(() => toast.error('An error occurred while closing the collection'));
+      .catch(() => toast.error('An error occurred while removing the collection'));
   };
 
   return (
