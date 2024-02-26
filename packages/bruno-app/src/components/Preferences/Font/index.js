@@ -9,9 +9,14 @@ const Font = ({ close }) => {
   const preferences = useSelector((state) => state.app.preferences);
 
   const [codeFont, setCodeFont] = useState(get(preferences, 'font.codeFont', 'default'));
+  const [fontSize, setFontSize] = useState(get(preferences, 'font.fontSize', 14));
 
-  const handleInputChange = (event) => {
+  const handleFontStyleChange = (event) => {
     setCodeFont(event.target.value);
+  };
+
+  const handleFontSizeChange = (event) => {
+    setFontSize(event.target.value);
   };
 
   const handleSave = () => {
@@ -19,7 +24,8 @@ const Font = ({ close }) => {
       savePreferences({
         ...preferences,
         font: {
-          codeFont
+          codeFont,
+          fontSize
         }
       })
     ).then(() => {
@@ -29,17 +35,40 @@ const Font = ({ close }) => {
 
   return (
     <StyledWrapper>
-      <label className="block font-medium">Code Editor Font</label>
-      <input
-        type="text"
-        className="block textbox mt-2 w-full"
-        autoComplete="off"
-        autoCorrect="off"
-        autoCapitalize="off"
-        spellCheck="false"
-        onChange={handleInputChange}
-        defaultValue={codeFont}
-      />
+      <label className="block font-medium mb-3">Code Editor Font</label>
+      <div className="mb-3 flex items-center gap-3">
+        <label className="settings-label" htmlFor="fontstyle">
+          Font
+        </label>
+        <input
+          type="text"
+          className="block textbox"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          onChange={handleFontStyleChange}
+          defaultValue={codeFont ? codeFont : 'Default'}
+        />
+      </div>
+
+      <div className="mb-3 flex items-center gap-3">
+        <label className="settings-label" htmlFor="fontsize">
+          Size
+        </label>
+        <input
+          type="number"
+          min="6"
+          max="24"
+          className="block textbox"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          onChange={handleFontSizeChange}
+          defaultValue={fontSize ? fontSize : 14}
+        />
+      </div>
 
       <div className="mt-10">
         <button type="submit" className="submit btn btn-sm btn-secondary" onClick={handleSave}>
