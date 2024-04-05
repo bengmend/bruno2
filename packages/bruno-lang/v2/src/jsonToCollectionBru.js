@@ -13,7 +13,7 @@ const stripLastLine = (text) => {
 };
 
 const jsonToCollectionBru = (json) => {
-  const { meta, query, headers, auth, script, tests, vars, docs } = json;
+  const { meta, query, headers, auth, script, tests, vars, docs, timeout } = json;
 
   let bru = '';
 
@@ -238,6 +238,12 @@ ${indentString(tests)}
     bru += `docs {
 ${indentString(docs)}
 }
+
+`;
+  }
+
+  if (timeout && timeout) {
+    bru += `timeout ${timeout}
 
 `;
   }

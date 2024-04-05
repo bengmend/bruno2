@@ -3,7 +3,7 @@ const _ = require('lodash');
 const { outdentString } = require('../../v1/src/utils');
 
 const grammar = ohm.grammar(`Bru {
-  BruFile = (meta | query | headers | auth | auths | vars | script | tests | docs)*
+  BruFile = (meta | query | headers | auth | auths | vars | script | tests | docs | timeout)*
   auths = authawsv4 | authbasic | authbearer | authdigest | authOAuth2
 
   nl = "\\r"? "\\n"
@@ -49,6 +49,7 @@ const grammar = ohm.grammar(`Bru {
   scriptres = "script:post-response" st* "{" nl* textblock tagend
   tests = "tests" st* "{" nl* textblock tagend
   docs = "docs" st* "{" nl* textblock tagend
+  timeout = "timeout" st+ digit* st* nl
 }`);
 
 const mapPairListToKeyValPairs = (pairList = [], parseEnabled = true) => {
@@ -347,6 +348,11 @@ const sem = grammar.createSemantics().addAttribute('ast', {
   docs(_1, _2, _3, _4, textblock, _5) {
     return {
       docs: outdentString(textblock.sourceString)
+    };
+  },
+  timeout(_1, _2, textblock, _4, _5) {
+    return {
+      timeout: outdentString(textblock.sourceString)
     };
   }
 });

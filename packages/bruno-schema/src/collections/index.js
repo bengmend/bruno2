@@ -210,7 +210,8 @@ const requestSchema = Yup.object({
     .nullable(),
   assertions: Yup.array().of(keyValueSchema).nullable(),
   tests: Yup.string().nullable(),
-  docs: Yup.string().nullable()
+  docs: Yup.string().nullable(),
+  timeout: Yup.string().nullable()
 })
   .noUnknown(true)
   .strict();

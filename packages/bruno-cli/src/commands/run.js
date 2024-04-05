@@ -202,6 +202,12 @@ const builder = async (yargs) => {
       describe: 'Path to write file results to',
       type: 'string'
     })
+    .option('timeout', {
+      alias: 't',
+      describe: 'Timeout for test request',
+      default: -1,
+      type: 'integer'
+    })
     .option('format', {
       alias: 'f',
       describe: 'Format of the file results; available formats are "json" (default), "junit" or "html"',
@@ -245,7 +251,19 @@ const builder = async (yargs) => {
 
 const handler = async function (argv) {
   try {
-    let { filename, cacert, env, envVar, insecure, r: recursive, output: outputPath, format, testsOnly, bail } = argv;
+    let {
+      filename,
+      cacert,
+      env,
+      envVar,
+      insecure,
+      r: recursive,
+      output: outputPath,
+      format,
+      testsOnly,
+      bail,
+      timeout
+    } = argv;
     const collectionPath = process.cwd();
 
     // todo
@@ -357,6 +375,11 @@ const handler = async function (argv) {
       });
     }
 
+    if (typeof timeout !== 'number') {
+      console.error(chalk.red(`Timeout must be a number`));
+      return;
+    }
+
     const _isFile = isFile(filename);
     let results = [];
 
@@ -416,6 +439,14 @@ const handler = async function (argv) {
     while (currentRequestIndex < bruJsons.length) {
       const iter = bruJsons[currentRequestIndex];
       const { bruFilepath, bruJson } = iter;
+
+      if (collectionRoot.request.timeout && !bruJson.request.timeout) {
+        bruJson.request.timeout = collectionRoot.request.timeout;
+      }
+
+      if (timeout > -1) {
+        bruJson.request.timeout = timeout;
+      }
 
       const start = process.hrtime();
       const result = await runSingleRequest(
