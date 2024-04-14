@@ -57,6 +57,7 @@ Thank you for using Bruno CLI!
 ## Changelog
 
 <!-- An absolute link is used here because npm treats links differently -->
+
 See [https://github.com/usebruno/bruno/releases](https://github.com/usebruno/bruno/releases)
 
 ## License

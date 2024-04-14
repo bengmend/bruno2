@@ -11,7 +11,7 @@ const contentDispositionParser = require('content-disposition');
 const mime = require('mime-types');
 const { ipcMain } = require('electron');
 const { isUndefined, isNull, each, get, compact, cloneDeep } = require('lodash');
-const { VarsRuntime, AssertRuntime, ScriptRuntime, TestRuntime } = require('@usebruno/js');
+const { VarsRuntime, AssertRuntime, ScriptRuntime, TestRuntime, runScript } = require('@usebruno/js');
 const prepareRequest = require('./prepare-request');
 const prepareCollectionRequest = require('./prepare-collection-request');
 const prepareGqlIntrospectionRequest = require('./prepare-gql-introspection-request');
@@ -272,13 +272,17 @@ const parseDataFromResponse = (response) => {
 };
 
 const registerNetworkIpc = (mainWindow) => {
-  const onConsoleLog = (type, args) => {
+  const onConsoleLog = async (type, args) => {
     console[type](...args);
 
-    mainWindow.webContents.send('main:console-log', {
-      type,
-      args
-    });
+    try {
+      await mainWindow.webContents.send('main:console-log', {
+        type,
+        args
+      });
+    } catch (e) {
+      console.error(`Could not send the above console.log to the BrowserWindow: "${e}"`);
+    }
   };
 
   const runPreRequest = async (
@@ -318,26 +322,43 @@ const registerNetworkIpc = (mainWindow) => {
     // run pre-request script
     let scriptResult;
     const requestScript = compact([get(collectionRoot, 'request.script.req'), get(request, 'script.req')]).join(os.EOL);
-    if (requestScript?.length) {
-      const scriptRuntime = new ScriptRuntime();
-      scriptResult = await scriptRuntime.runRequestScript(
+    if (scriptingConfig?.runtime === 'node') {
+      scriptResult = await runScript(
         decomment(requestScript),
         request,
-        envVars,
-        collectionVariables,
+        null,
+        {
+          envVariables: envVars,
+          collectionVariables,
+          processEnvVars
+        },
+        false,
         collectionPath,
-        onConsoleLog,
-        processEnvVars,
-        scriptingConfig
+        scriptingConfig,
+        onConsoleLog
       );
-
-      mainWindow.webContents.send('main:script-environment-update', {
-        envVariables: scriptResult.envVariables,
-        collectionVariables: scriptResult.collectionVariables,
-        requestUid,
-        collectionUid
-      });
+    } else {
+      if (requestScript?.length) {
+        const scriptRuntime = new ScriptRuntime();
+        scriptResult = await scriptRuntime.runRequestScript(
+          decomment(requestScript),
+          request,
+          envVars,
+          collectionVariables,
+          collectionPath,
+          onConsoleLog,
+          processEnvVars,
+          scriptingConfig
+        );
+      }
     }
+
+    mainWindow.webContents.send('main:script-environment-update', {
+      envVariables: scriptResult.envVariables,
+      collectionVariables: scriptResult.collectionVariables,
+      requestUid,
+      collectionUid
+    });
 
     // interpolate variables inside request
     interpolateVars(request, envVars, collectionVariables, processEnvVars);
@@ -397,26 +418,49 @@ const registerNetworkIpc = (mainWindow) => {
     const responseScript = compact([get(collectionRoot, 'request.script.res'), get(request, 'script.res')]).join(
       os.EOL
     );
-    if (responseScript?.length) {
-      const scriptRuntime = new ScriptRuntime();
-      scriptResult = await scriptRuntime.runResponseScript(
+
+    if (scriptingConfig?.runtime === 'node') {
+      scriptResult = await runScript(
         decomment(responseScript),
         request,
         response,
-        envVars,
-        collectionVariables,
+        {
+          envVariables: envVars,
+          collectionVariables,
+          processEnvVars
+        },
+        false,
         collectionPath,
-        onConsoleLog,
-        processEnvVars,
-        scriptingConfig
+        scriptingConfig,
+        onConsoleLog
       );
-
       mainWindow.webContents.send('main:script-environment-update', {
         envVariables: scriptResult.envVariables,
         collectionVariables: scriptResult.collectionVariables,
         requestUid,
         collectionUid
       });
+    } else {
+      if (responseScript?.length) {
+        const scriptRuntime = new ScriptRuntime();
+        scriptResult = await scriptRuntime.runResponseScript(
+          decomment(responseScript),
+          request,
+          response,
+          envVars,
+          collectionVariables,
+          collectionPath,
+          onConsoleLog,
+          processEnvVars,
+          scriptingConfig
+        );
+        mainWindow.webContents.send('main:script-environment-update', {
+          envVariables: scriptResult.envVariables,
+          collectionVariables: scriptResult.collectionVariables,
+          requestUid,
+          collectionUid
+        });
+      }
     }
     return scriptResult;
   };
@@ -583,18 +627,36 @@ const registerNetworkIpc = (mainWindow) => {
         item.draft ? get(item.draft, 'request.tests') : get(item, 'request.tests')
       ]).join(os.EOL);
       if (typeof testFile === 'string') {
-        const testRuntime = new TestRuntime();
-        const testResults = await testRuntime.runTests(
-          decomment(testFile),
-          request,
-          response,
-          envVars,
-          collectionVariables,
-          collectionPath,
-          onConsoleLog,
-          processEnvVars,
-          scriptingConfig
-        );
+        let testResults;
+        if (scriptingConfig?.runtime === 'node') {
+          testResults = await runScript(
+            decomment(testFile),
+            request,
+            response,
+            {
+              envVariables: envVars,
+              collectionVariables,
+              processEnvVars
+            },
+            true,
+            collectionPath,
+            scriptingConfig,
+            onConsoleLog
+          );
+        } else {
+          const testRuntime = new TestRuntime();
+          testResults = await testRuntime.runTests(
+            decomment(testFile),
+            request,
+            response,
+            envVars,
+            collectionVariables,
+            collectionPath,
+            onConsoleLog,
+            processEnvVars,
+            scriptingConfig
+          );
+        }
 
         mainWindow.webContents.send('main:run-request-event', {
           type: 'test-results',
@@ -1021,18 +1083,36 @@ const registerNetworkIpc = (mainWindow) => {
               item.draft ? get(item.draft, 'request.tests') : get(item, 'request.tests')
             ]).join(os.EOL);
             if (typeof testFile === 'string') {
-              const testRuntime = new TestRuntime();
-              const testResults = await testRuntime.runTests(
-                decomment(testFile),
-                request,
-                response,
-                envVars,
-                collectionVariables,
-                collectionPath,
-                onConsoleLog,
-                processEnvVars,
-                scriptingConfig
-              );
+              let testResults;
+              if (scriptingConfig?.runtime === 'node') {
+                testResults = await runScript(
+                  decomment(testFile),
+                  request,
+                  response,
+                  {
+                    envVariables: envVars,
+                    collectionVariables,
+                    processEnvVars
+                  },
+                  true,
+                  collectionPath,
+                  scriptingConfig,
+                  onConsoleLog
+                );
+              } else {
+                const testRuntime = new TestRuntime();
+                testResults = await testRuntime.runTests(
+                  decomment(testFile),
+                  request,
+                  response,
+                  envVars,
+                  collectionVariables,
+                  collectionPath,
+                  onConsoleLog,
+                  processEnvVars,
+                  scriptingConfig
+                );
+              }
 
               mainWindow.webContents.send('main:run-folder-event', {
                 type: 'test-results',
