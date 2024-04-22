@@ -126,6 +126,15 @@ ${indentString(`password: ${auth?.basic?.password || ''}`)}
 `;
   }
 
+  if (auth && auth.wsse) {
+    bru += `auth:wsse {
+${indentString(`user: ${auth?.wsse?.user || ''}`)}
+${indentString(`password: ${auth?.wsse?.password || ''}`)}
+}
+
+`;
+  }
+
   if (auth && auth.bearer) {
     bru += `auth:bearer {
 ${indentString(`token: ${auth?.bearer?.token || ''}`)}
