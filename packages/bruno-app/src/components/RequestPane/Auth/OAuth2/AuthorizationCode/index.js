@@ -7,6 +7,7 @@ import { updateAuth } from 'providers/ReduxStore/slices/collections';
 import { saveRequest, sendRequest } from 'providers/ReduxStore/slices/collections/actions';
 import StyledWrapper from './StyledWrapper';
 import { inputsConfig } from './inputsConfig';
+import ClientCredentialsMethodSelector from 'components/RequestPane/Auth/OAuth2/ClientCredentialsMethodSelector';
 
 const OAuth2AuthorizationCode = ({ item, collection }) => {
   const dispatch = useDispatch();
@@ -20,7 +21,8 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
 
   const handleSave = () => dispatch(saveRequest(item.uid, collection.uid));
 
-  const { callbackUrl, authorizationUrl, accessTokenUrl, clientId, clientSecret, scope, pkce } = oAuth;
+  const { callbackUrl, authorizationUrl, accessTokenUrl, clientId, clientSecret, clientSecretMethod, scope, pkce } =
+    oAuth;
 
   const handleChange = (key, value) => {
     dispatch(
@@ -35,6 +37,7 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
           accessTokenUrl,
           clientId,
           clientSecret,
+          clientSecretMethod,
           scope,
           pkce,
           [key]: value
@@ -56,6 +59,7 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
           accessTokenUrl,
           clientId,
           clientSecret,
+          clientSecretMethod,
           scope,
           pkce: !Boolean(oAuth?.['pkce'])
         }
@@ -92,6 +96,7 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
           onChange={handlePKCEToggle}
         />
       </div>
+      <ClientCredentialsMethodSelector item={item} collection={collection} oAuth={oAuth} />
     </StyledWrapper>
   );
 };
