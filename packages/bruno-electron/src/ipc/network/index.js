@@ -204,34 +204,48 @@ const configureRequest = async (
   if (request.oauth2) {
     let requestCopy = cloneDeep(request);
     switch (request?.oauth2?.grantType) {
-      case 'authorization_code':
+      case 'authorization_code': {
         interpolateVars(requestCopy, envVars, collectionVariables, processEnvVars);
-        const { data: authorizationCodeData, url: authorizationCodeAccessTokenUrl } =
-          await resolveOAuth2AuthorizationCodeAccessToken(requestCopy, collectionUid);
+        const {
+          headers: basicAuth,
+          data: authorizationCodeData,
+          url: authorizationCodeAccessTokenUrl
+        } = await resolveOAuth2AuthorizationCodeAccessToken(requestCopy, collectionUid);
         request.method = 'POST';
         request.headers['content-type'] = 'application/x-www-form-urlencoded';
+        request.headers = { ...request.headers, ...basicAuth };
         request.data = authorizationCodeData;
         request.url = authorizationCodeAccessTokenUrl;
         break;
-      case 'client_credentials':
+      }
+      case 'client_credentials': {
         interpolateVars(requestCopy, envVars, collectionVariables, processEnvVars);
-        const { data: clientCredentialsData, url: clientCredentialsAccessTokenUrl } =
-          await transformClientCredentialsRequest(requestCopy);
+        const {
+          headers: basicAuth,
+          data: clientCredentialsData,
+          url: clientCredentialsAccessTokenUrl
+        } = await transformClientCredentialsRequest(requestCopy);
         request.method = 'POST';
         request.headers['content-type'] = 'application/x-www-form-urlencoded';
+        request.headers = { ...request.headers, ...basicAuth };
         request.data = clientCredentialsData;
         request.url = clientCredentialsAccessTokenUrl;
         break;
-      case 'password':
+      }
+      case 'password': {
         interpolateVars(requestCopy, envVars, collectionVariables, processEnvVars);
-        const { data: passwordData, url: passwordAccessTokenUrl } = await transformPasswordCredentialsRequest(
-          requestCopy
-        );
+        const {
+          headers: basicAuth,
+          data: passwordData,
+          url: passwordAccessTokenUrl
+        } = await transformPasswordCredentialsRequest(requestCopy);
         request.method = 'POST';
         request.headers['content-type'] = 'application/x-www-form-urlencoded';
+        request.headers = { ...request.headers, ...basicAuth };
         request.data = passwordData;
         request.url = passwordAccessTokenUrl;
         break;
+      }
     }
   }
 
