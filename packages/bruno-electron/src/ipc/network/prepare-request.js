@@ -1,5 +1,6 @@
 const { get, each, filter, extend } = require('lodash');
 const decomment = require('decomment');
+var JSONbig = require('json-bigint');
 const FormData = require('form-data');
 const fs = require('fs');
 const path = require('path');
@@ -29,13 +30,9 @@ const parseFormData = (datas, collectionPath) => {
   return form;
 };
 
-// Authentication
-// A request can override the collection auth with another auth
-// But it cannot override the collection auth with no auth
-// We will provide support for disabling the auth via scripting in the future
 const setAuthHeaders = (axiosRequest, request, collectionRoot) => {
   const collectionAuth = get(collectionRoot, 'request.auth');
-  if (collectionAuth) {
+  if (collectionAuth && request.auth.mode === 'inherit') {
     switch (collectionAuth.mode) {
       case 'awsv4':
         axiosRequest.awsv4config = {
@@ -54,7 +51,7 @@ const setAuthHeaders = (axiosRequest, request, collectionRoot) => {
         };
         break;
       case 'bearer':
-        axiosRequest.headers['authorization'] = `Bearer ${get(collectionAuth, 'bearer.token')}`;
+        axiosRequest.headers['Authorization'] = `Bearer ${get(collectionAuth, 'bearer.token')}`;
         break;
       case 'digest':
         axiosRequest.digestConfig = {
@@ -84,13 +81,51 @@ const setAuthHeaders = (axiosRequest, request, collectionRoot) => {
         };
         break;
       case 'bearer':
-        axiosRequest.headers['authorization'] = `Bearer ${get(request, 'auth.bearer.token')}`;
+        axiosRequest.headers['Authorization'] = `Bearer ${get(request, 'auth.bearer.token')}`;
         break;
       case 'digest':
         axiosRequest.digestConfig = {
           username: get(request, 'auth.digest.username'),
           password: get(request, 'auth.digest.password')
         };
+        break;
+      case 'oauth2':
+        const grantType = get(request, 'auth.oauth2.grantType');
+        switch (grantType) {
+          case 'password':
+            axiosRequest.oauth2 = {
+              grantType: grantType,
+              accessTokenUrl: get(request, 'auth.oauth2.accessTokenUrl'),
+              username: get(request, 'auth.oauth2.username'),
+              password: get(request, 'auth.oauth2.password'),
+              clientId: get(request, 'auth.oauth2.clientId'),
+              clientSecret: get(request, 'auth.oauth2.clientSecret'),
+              scope: get(request, 'auth.oauth2.scope')
+            };
+            break;
+          case 'authorization_code':
+            axiosRequest.oauth2 = {
+              grantType: grantType,
+              callbackUrl: get(request, 'auth.oauth2.callbackUrl'),
+              authorizationUrl: get(request, 'auth.oauth2.authorizationUrl'),
+              accessTokenUrl: get(request, 'auth.oauth2.accessTokenUrl'),
+              clientId: get(request, 'auth.oauth2.clientId'),
+              clientSecret: get(request, 'auth.oauth2.clientSecret'),
+              scope: get(request, 'auth.oauth2.scope'),
+              pkce: get(request, 'auth.oauth2.pkce')
+            };
+            break;
+          case 'client_credentials':
+            axiosRequest.oauth2 = {
+              grantType: grantType,
+              accessTokenUrl: get(request, 'auth.oauth2.accessTokenUrl'),
+              clientId: get(request, 'auth.oauth2.clientId'),
+              clientSecret: get(request, 'auth.oauth2.clientSecret'),
+              scope: get(request, 'auth.oauth2.scope')
+            };
+            break;
+        }
+        break;
     }
   }
 
@@ -104,7 +139,7 @@ const prepareRequest = (request, collectionRoot, collectionPath) => {
 
   // collection headers
   each(get(collectionRoot, 'request.headers', []), (h) => {
-    if (h.enabled) {
+    if (h.enabled && h.name.length > 0) {
       headers[h.name] = h.value;
       if (h.name.toLowerCase() === 'content-type') {
         contentTypeDefined = true;
@@ -113,7 +148,7 @@ const prepareRequest = (request, collectionRoot, collectionPath) => {
   });
 
   each(request.headers, (h) => {
-    if (h.enabled) {
+    if (h.enabled && h.name.length > 0) {
       headers[h.name] = h.value;
       if (h.name.toLowerCase() === 'content-type') {
         contentTypeDefined = true;
@@ -136,8 +171,7 @@ const prepareRequest = (request, collectionRoot, collectionPath) => {
       axiosRequest.headers['content-type'] = 'application/json';
     }
     try {
-      // axiosRequest.data = JSON.parse(request.body.json);
-      axiosRequest.data = JSON.parse(decomment(request.body.json));
+      axiosRequest.data = JSONbig.parse(decomment(request.body.json));
     } catch (ex) {
       axiosRequest.data = request.body.json;
     }

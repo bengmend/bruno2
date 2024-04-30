@@ -417,7 +417,10 @@ export const transformRequestToSaveToFilesystem = (item) => {
   });
 
   if (itemToSave.request.body.mode === 'json') {
-    itemToSave.request.body.json = replaceTabsWithSpaces(itemToSave.request.body.json);
+    itemToSave.request.body = {
+      ...itemToSave.request.body,
+      json: replaceTabsWithSpaces(itemToSave.request.body.json)
+    };
   }
 
   return itemToSave;
@@ -489,6 +492,10 @@ export const humanizeRequestBodyMode = (mode) => {
 export const humanizeRequestAuthMode = (mode) => {
   let label = 'No Auth';
   switch (mode) {
+    case 'inherit': {
+      label = 'Inherit';
+      break;
+    }
     case 'awsv4': {
       label = 'AWS Sig V4';
       break;
@@ -503,6 +510,30 @@ export const humanizeRequestAuthMode = (mode) => {
     }
     case 'digest': {
       label = 'Digest Auth';
+      break;
+    }
+    case 'oauth2': {
+      label = 'OAuth 2.0';
+      break;
+    }
+  }
+
+  return label;
+};
+
+export const humanizeGrantType = (mode) => {
+  let label = 'No Auth';
+  switch (mode) {
+    case 'password': {
+      label = 'Password Credentials';
+      break;
+    }
+    case 'authorization_code': {
+      label = 'Authorization Code';
+      break;
+    }
+    case 'client_credentials': {
+      label = 'Client Credentials';
       break;
     }
   }
@@ -610,4 +641,15 @@ export const getAllVariables = (collection) => {
       }
     }
   };
+};
+
+export const maskInputValue = (value) => {
+  if (!value || typeof value !== 'string') {
+    return '';
+  }
+
+  return value
+    .split('')
+    .map(() => '*')
+    .join('');
 };
