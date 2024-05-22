@@ -37,6 +37,7 @@ const OAuth2AuthorizationCode = ({ collection }) => {
           clientId,
           clientSecret,
           scope,
+          state,
           pkce,
           [key]: value
         }
@@ -57,6 +58,7 @@ const OAuth2AuthorizationCode = ({ collection }) => {
           clientId,
           clientSecret,
           scope,
+          state,
           pkce: !Boolean(oAuth?.['pkce'])
         }
       })
