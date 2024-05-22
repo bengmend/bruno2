@@ -9,6 +9,7 @@ import StyledWrapper from './StyledWrapper';
 import { inputsConfig } from './inputsConfig';
 import { clearOauth2Cache } from 'utils/network/index';
 import toast from 'react-hot-toast';
+import ClientCredentialsMethodSelector from 'components/RequestPane/Auth/OAuth2/ClientCredentialsMethodSelector';
 
 const OAuth2AuthorizationCode = ({ item, collection }) => {
   const dispatch = useDispatch();
@@ -22,7 +23,8 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
 
   const handleSave = () => dispatch(saveRequest(item.uid, collection.uid));
 
-  const { callbackUrl, authorizationUrl, accessTokenUrl, clientId, clientSecret, scope, pkce } = oAuth;
+  const { callbackUrl, authorizationUrl, accessTokenUrl, clientId, clientSecret, clientSecretMethod, scope, pkce } =
+    oAuth;
 
   const handleChange = (key, value) => {
     dispatch(
@@ -37,6 +39,7 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
           accessTokenUrl,
           clientId,
           clientSecret,
+          clientSecretMethod,
           scope,
           pkce,
           [key]: value
@@ -58,6 +61,7 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
           accessTokenUrl,
           clientId,
           clientSecret,
+          clientSecretMethod,
           scope,
           pkce: !Boolean(oAuth?.['pkce'])
         }
@@ -104,6 +108,7 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
           onChange={handlePKCEToggle}
         />
       </div>
+      <ClientCredentialsMethodSelector item={item} collection={collection} oAuth={oAuth} />
       <div className="flex flex-row gap-4">
         <button onClick={handleRun} className="submit btn btn-sm btn-secondary w-fit">
           Get Access Token
