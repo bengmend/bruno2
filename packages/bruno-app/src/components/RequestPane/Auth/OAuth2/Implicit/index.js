@@ -7,8 +7,10 @@ import { updateAuth } from 'providers/ReduxStore/slices/collections';
 import { saveRequest, sendRequest } from 'providers/ReduxStore/slices/collections/actions';
 import StyledWrapper from './StyledWrapper';
 import { inputsConfig } from './inputsConfig';
+import { clearOauth2Cache } from 'utils/network/index';
+import toast from 'react-hot-toast';
 
-const OAuth2AuthorizationCode = ({ item, collection }) => {
+const OAuth2Implicit = ({ item, collection }) => {
   const dispatch = useDispatch();
   const { storedTheme } = useTheme();
 
@@ -20,7 +22,7 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
 
   const handleSave = () => dispatch(saveRequest(item.uid, collection.uid));
 
-  const { callbackUrl, authorizationUrl, accessTokenUrl, clientId, clientSecret, scope, pkce } = oAuth;
+  const { callbackUrl, authorizationUrl, clientId, scope } = oAuth;
 
   const handleChange = (key, value) => {
     dispatch(
@@ -29,38 +31,25 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
         collectionUid: collection.uid,
         itemUid: item.uid,
         content: {
-          grantType: 'authorization_code',
+          grantType: 'implicit',
           callbackUrl,
           authorizationUrl,
-          accessTokenUrl,
           clientId,
-          clientSecret,
           scope,
-          pkce,
           [key]: value
         }
       })
     );
   };
 
-  const handlePKCEToggle = (e) => {
-    dispatch(
-      updateAuth({
-        mode: 'oauth2',
-        collectionUid: collection.uid,
-        itemUid: item.uid,
-        content: {
-          grantType: 'authorization_code',
-          callbackUrl,
-          authorizationUrl,
-          accessTokenUrl,
-          clientId,
-          clientSecret,
-          scope,
-          pkce: !Boolean(oAuth?.['pkce'])
-        }
+  const handleClearCache = (e) => {
+    clearOauth2Cache(collection?.uid)
+      .then(() => {
+        toast.success('cleared cache successfully');
       })
-    );
+      .catch((err) => {
+        toast.error(err.message);
+      });
   };
 
   return (
@@ -83,17 +72,8 @@ const OAuth2AuthorizationCode = ({ item, collection }) => {
           </div>
         );
       })}
-      <div className="flex flex-row w-full gap-4" key="pkce">
-        <label className="block font-medium">Use PKCE</label>
-        <input
-          className="cursor-pointer"
-          type="checkbox"
-          checked={Boolean(oAuth?.['pkce'])}
-          onChange={handlePKCEToggle}
-        />
-      </div>
     </StyledWrapper>
   );
 };
 
-export default OAuth2AuthorizationCode;
+export default OAuth2Implicit;
