@@ -45,6 +45,7 @@ const CodeView = ({ language, item }) => {
           readOnly
           value={snippet}
           font={get(preferences, 'font.codeFont', 'default')}
+          fontSize={get(preferences, 'font.codeFontSize')}
           theme={displayedTheme}
           mode={lang}
         />
