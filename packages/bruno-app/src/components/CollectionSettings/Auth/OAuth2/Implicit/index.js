@@ -6,10 +6,9 @@ import SingleLineEditor from 'components/SingleLineEditor';
 import { saveCollectionRoot, sendCollectionOauth2Request } from 'providers/ReduxStore/slices/collections/actions';
 import StyledWrapper from './StyledWrapper';
 import { inputsConfig } from './inputsConfig';
-import { updateCollectionAuth } from 'providers/ReduxStore/slices/collections';
-import ClientCredentialsMethodSelector from 'components/RequestPane/Auth/OAuth2/ClientCredentialsMethodSelector';
+import { updateCollectionAuth } from 'providers/ReduxStore/slices/collections/index';
 
-const OAuth2AuthorizationCode = ({ collection }) => {
+const OAuth2Implicit = ({ item, collection }) => {
   const dispatch = useDispatch();
   const { storedTheme } = useTheme();
 
@@ -21,8 +20,7 @@ const OAuth2AuthorizationCode = ({ collection }) => {
 
   const handleSave = () => dispatch(saveCollectionRoot(collection.uid));
 
-  const { callbackUrl, authorizationUrl, accessTokenUrl, clientId, clientSecret, clientSecretMethod, scope, pkce } =
-    oAuth;
+  const { callbackUrl, authorizationUrl, clientId, scope } = oAuth;
 
   const handleChange = (key, value) => {
     dispatch(
@@ -30,40 +28,17 @@ const OAuth2AuthorizationCode = ({ collection }) => {
         mode: 'oauth2',
         collectionUid: collection.uid,
         content: {
-          grantType: 'authorization_code',
+          grantType: 'implicit',
           callbackUrl,
           authorizationUrl,
-          accessTokenUrl,
           clientId,
-          clientSecret,
-          clientSecretMethod,
           scope,
-          pkce,
           [key]: value
         }
       })
     );
   };
 
-  const handlePKCEToggle = (e) => {
-    dispatch(
-      updateCollectionAuth({
-        mode: 'oauth2',
-        collectionUid: collection.uid,
-        content: {
-          grantType: 'authorization_code',
-          callbackUrl,
-          authorizationUrl,
-          accessTokenUrl,
-          clientId,
-          clientSecret,
-          clientSecretMethod,
-          scope,
-          pkce: !Boolean(oAuth?.['pkce'])
-        }
-      })
-    );
-  };
   return (
     <StyledWrapper className="mt-2 flex w-full gap-4 flex-col">
       {inputsConfig.map((input) => {
@@ -84,18 +59,8 @@ const OAuth2AuthorizationCode = ({ collection }) => {
           </div>
         );
       })}
-      <div className="flex flex-row w-full gap-4" key="pkce">
-        <label className="block font-medium">Use PKCE</label>
-        <input
-          className="cursor-pointer"
-          type="checkbox"
-          checked={Boolean(oAuth?.['pkce'])}
-          onChange={handlePKCEToggle}
-        />
-      </div>
-      <ClientCredentialsMethodSelector collection={collection} oAuth={oAuth} />
     </StyledWrapper>
   );
 };
 
-export default OAuth2AuthorizationCode;
+export default OAuth2Implicit;
