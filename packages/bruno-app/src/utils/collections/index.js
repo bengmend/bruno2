@@ -426,7 +426,7 @@ export const transformRequestToSaveToFilesystem = (item) => {
       params: [],
       headers: [],
       auth: _item.request.auth,
-      body: _item.request.body,
+      body: { ..._item.request.body },
       script: _item.request.script,
       vars: _item.request.vars,
       assertions: _item.request.assertions,
@@ -455,6 +455,7 @@ export const transformRequestToSaveToFilesystem = (item) => {
     });
   });
 
+  //modify the body if mode is Json
   if (itemToSave.request.body.mode === 'json') {
     itemToSave.request.body = {
       ...itemToSave.request.body,
