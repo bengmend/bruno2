@@ -21,13 +21,47 @@ const Wrapper = styled.div`
       padding: 6px 10px;
 
       &:nth-child(1) {
+        width: 50px;
+      }
+
+      &:nth-child(2) {
         width: 30%;
       }
 
-      &:nth-child(3) {
+      &:nth-child(4) {
         width: 70px;
       }
     }
+  }
+
+  // Fixes overlay of draggable containing neighbouring elements
+  .clip-codemirror:active {
+    .CodeMirror {
+      textarea {
+        display: none;
+      }
+    }
+    .CodeMirror-scroll {
+      padding: 0 !important;
+      margin: 0 !important;
+
+      div:nth-last-child(2) {
+        display: none;
+      }
+    }
+  }
+
+  .draggable-handle {
+    cursor: grab;
+    white-space: nowrap;
+    text-align: center;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+  .dragging {
+    background: ${(props) => props.theme.table.active.bg};
   }
 
   .btn-add-param {

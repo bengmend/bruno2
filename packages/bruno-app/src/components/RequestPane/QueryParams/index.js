@@ -1,18 +1,22 @@
-import React from 'react';
+import { React } from 'react';
 import get from 'lodash/get';
 import cloneDeep from 'lodash/cloneDeep';
-import { IconTrash } from '@tabler/icons';
 import { useDispatch } from 'react-redux';
-import { useTheme } from 'providers/Theme';
-import { addQueryParam, updateQueryParam, deleteQueryParam } from 'providers/ReduxStore/slices/collections';
-import SingleLineEditor from 'components/SingleLineEditor';
+import {
+  addQueryParam,
+  updateQueryParam,
+  deleteQueryParam,
+  moveQueryParam
+} from 'providers/ReduxStore/slices/collections';
 import { sendRequest, saveRequest } from 'providers/ReduxStore/slices/collections/actions';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import StyledWrapper from './StyledWrapper';
+import { QueryParamRow } from './QueryParamRow';
 
 const QueryParams = ({ item, collection }) => {
   const dispatch = useDispatch();
-  const { storedTheme } = useTheme();
   const params = item.draft ? get(item, 'draft.request.params') : get(item, 'request.params');
 
   const handleAddParam = () => {
@@ -44,13 +48,7 @@ const QueryParams = ({ item, collection }) => {
       }
     }
 
-    dispatch(
-      updateQueryParam({
-        param,
-        itemUid: item.uid,
-        collectionUid: collection.uid
-      })
-    );
+    updateParam(param);
   };
 
   const handleRemoveParam = (param) => {
@@ -63,73 +61,61 @@ const QueryParams = ({ item, collection }) => {
     );
   };
 
+  const updateParam = (param) => {
+    dispatch(
+      updateQueryParam({
+        collectionUid: collection.uid,
+        itemUid: item.uid,
+        param: param
+      })
+    );
+  };
+
+  const handleParamDrag = (sourceIndex, targetIndex) => {
+    dispatch(
+      moveQueryParam({
+        sourceIndex: sourceIndex,
+        targetIndex: targetIndex,
+        paramUid: params[sourceIndex].uid,
+        itemUid: item.uid,
+        collectionUid: collection.uid
+      })
+    );
+    updateParam(params[sourceIndex]);
+  };
+
   return (
     <StyledWrapper className="w-full">
-      <table>
-        <thead>
-          <tr>
-            <td>Name</td>
-            <td>Value</td>
-            <td></td>
-          </tr>
-        </thead>
-        <tbody>
-          {params && params.length
-            ? params.map((param, index) => {
-                return (
-                  <tr key={param.uid}>
-                    <td>
-                      <input
-                        type="text"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck="false"
-                        value={param.name}
-                        className="mousetrap"
-                        onChange={(e) => handleParamChange(e, param, 'name')}
-                      />
-                    </td>
-                    <td>
-                      <SingleLineEditor
-                        value={param.value}
-                        theme={storedTheme}
-                        onSave={onSave}
-                        onChange={(newValue) =>
-                          handleParamChange(
-                            {
-                              target: {
-                                value: newValue
-                              }
-                            },
-                            param,
-                            'value'
-                          )
-                        }
-                        onRun={handleRun}
-                        collection={collection}
-                      />
-                    </td>
-                    <td>
-                      <div className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={param.enabled}
-                          tabIndex="-1"
-                          className="mr-3 mousetrap"
-                          onChange={(e) => handleParamChange(e, param, 'enabled')}
-                        />
-                        <button tabIndex="-1" onClick={() => handleRemoveParam(param)}>
-                          <IconTrash strokeWidth={1.5} size={20} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            : null}
-        </tbody>
-      </table>
+      <DndProvider backend={HTML5Backend}>
+        <table className="draggable-table select-text">
+          <thead>
+            <tr>
+              <td></td>
+              <td>Name</td>
+              <td>Value</td>
+              <td></td>
+            </tr>
+          </thead>
+          <tbody>
+            {params && params.length
+              ? params.map((param, index) => {
+                  return (
+                    <QueryParamRow
+                      param={param}
+                      index={index}
+                      collection={collection}
+                      onSave={onSave}
+                      onRun={handleRun}
+                      onChangeEvent={handleParamChange}
+                      onTrashEvent={handleRemoveParam}
+                      onDragEvent={handleParamDrag}
+                    />
+                  );
+                })
+              : null}
+          </tbody>
+        </table>
+      </DndProvider>
       <button className="btn-add-param text-link pr-2 py-3 mt-2 select-none" onClick={handleAddParam}>
         +&nbsp;<span>Add Param</span>
       </button>
