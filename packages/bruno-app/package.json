@@ -24,7 +24,7 @@
     "axios": "^1.5.1",
     "classnames": "^2.3.1",
     "codemirror": "5.65.2",
-    "codemirror-graphql": "1.2.5",
+    "codemirror-graphql": "2.2.0",
     "cookie": "^0.6.0",
     "escape-html": "^1.0.3",
     "file": "^0.2.2",
